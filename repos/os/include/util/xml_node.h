@@ -537,9 +537,10 @@ class Genode::Xml_node
 		}
 
 		/**
-		 * Find next non-whitespace and non-comment token
+		 * Find next non-whitespace and non-comment token and
+		 * optionally skip that do not start tags.
 		 */
-		static Token eat_whitespaces_and_comments(Token t)
+		static Token eat_whitespaces_and_comments(Token t, bool eat_text_too = false)
 		{
 			while (true) {
 
@@ -549,6 +550,13 @@ class Genode::Xml_node
 				Comment comment(t);
 				if (comment.valid()) {
 					t = comment.next_token();
+					continue;
+				}
+
+				/* skip all tokens that are no tags */
+				Tag curr_tag(t);
+				if (curr_tag.type() == Tag::INVALID) {
+					t = t.next();
 					continue;
 				}
 
@@ -719,7 +727,7 @@ class Genode::Xml_node
 		Xml_node next() const
 		{
 			Token after_node = _end_tag.next_token();
-			after_node = eat_whitespaces_and_comments(after_node);
+			after_node = eat_whitespaces_and_comments(after_node, true);
 			try { return _sub_node(after_node.start()); }
 			catch (Invalid_syntax) { throw Nonexistent_sub_node(); }
 		}
