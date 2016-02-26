@@ -1,0 +1,3 @@
+
+REP_INC_DIR += $(LIBUNISTRING_PORT_DIR)/include
+REP_INC_DIR += $(LIBUNISTRING_PORT_DIR)/include/libunistring
