@@ -1,0 +1,7 @@
+LICENSE   := GPLv3
+DOWNLOADS := libltdl.archive
+VERSION   := 2.4.6
+
+URL(libltdl) := http://ftpmirror.gnu.org/libtool/libtool-$(VERSION).tar.gz
+SHA(libltdl) := 25b6931265230a06f0fc2146df64c04e5ae6ec33
+DIR(libltdl) := src/lib/libltdl
