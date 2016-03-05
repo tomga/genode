@@ -1,0 +1,9 @@
+LICENSE   := GPLv3
+VERSION   := 2.0.11
+DOWNLOADS := guile.archive
+
+URL(guile) := http://ftp.gnu.org/gnu/guile/guile-$(VERSION).tar.gz
+SHA(guile) := 3cdd1c4956414bffadea13e5a1ca08949016a802
+SIG(guile) := ${URL(guile)}.sig
+KEY(guile) := GNU
+DIR(guile) := src/noux-pkg/guile
