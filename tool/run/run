@@ -918,7 +918,11 @@ proc generate_boot_modules_asm {path modules} {
 proc build_core {lib modules target link_address} {
 
 	# generate assembly code aggregating the modules data
-	set asm_src [generate_boot_modules_asm [run_dir]/genode $modules]
+    set asm_src [generate_boot_modules_asm [run_dir]/genode $modules]
+    puts ""
+    puts "DBG lib    : $lib"
+    puts "DBG modules: $modules"
+    puts "DBG asm_src: $asm_src"
 
 	# architecture dependent definitions
 	set arch {}
@@ -932,6 +936,7 @@ proc build_core {lib modules target link_address} {
 	exec [cross_dev_prefix]gcc {*}$arch -c -x assembler -o [run_dir].boot_modules.o - << $asm_src
 
 	# link final image
+	puts "[cross_dev_prefix]g++ {*}$arch -nostdlib {*}[core_ld_opts] -Wl,-z -Wl,max-page-size=0x1000 -Wl,-Ttext=$link_address -Wl,-gc-sections -Wl,-nostdlib -Wl,--whole-archive -Wl,--start-group  $lib [run_dir].boot_modules.o -Wl,--no-whole-archive  -Wl,--end-group $libgcc -o $target"
 	exec [cross_dev_prefix]g++ {*}$arch -nostdlib {*}[core_ld_opts] \
 	                           -Wl,-z -Wl,max-page-size=0x1000 \
 	                           -Wl,-Ttext=$link_address -Wl,-gc-sections \
