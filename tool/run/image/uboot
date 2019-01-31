@@ -26,6 +26,7 @@ proc run_image {elf_img} {
 	set load_addr [lindex [regexp -inline -all -- {\S+} $load_addr] 3]
 
 	set bin_img "[run_dir]/image.bin"
+        puts "DBG: exec [cross_dev_prefix]objcopy -O binary $elf_img $bin_img"
 	exec [cross_dev_prefix]objcopy -O binary $elf_img $bin_img
 
 	set use_gzip [expr ![image_uboot_use_no_gzip]]
@@ -41,7 +42,8 @@ proc run_image {elf_img} {
 
 	# create uImage
 	set uboot_img [run_dir]/uImage
+	puts "DBG: mkimage -A arm -O linux -T kernel -C $compress_type -a $load_addr -e $entrypoint -d $bin_img$bin_ext $uboot_img"
 	exec mkimage -A arm -O linux -T kernel -C $compress_type -a $load_addr \
 	             -e $entrypoint -d $bin_img$bin_ext $uboot_img
-	exec rm -rf $bin_img$bin_ext
+	#exec rm -rf $bin_img$bin_ext
 }
