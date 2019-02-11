@@ -42,7 +42,7 @@
 	 *****************************************************/
 
 	mov sp, #0                  /* for boot cpu use id 0    */
-	cps #31                     /* change to system mode    */
+#	cps #31                     /* change to system mode    */
 
 	.global _start_setup_stack  /* entrypoint for all cpus */
 	_start_setup_stack:
@@ -51,7 +51,7 @@
 	cmp r2, #31                 /* check for system mode */
 	mrcne p15, 0, sp, c0, c0, 5 /* read multiprocessor affinity register */
 	andne sp, sp, #0xff         /* set cpu id for non-boot cpu */
-	cps #19                     /* change to supervisor mode */
+#	cps #19                     /* change to supervisor mode */
 
 	adr r0, _start_stack        /* load stack address into r0 */
 	adr r1, _start_stack_size   /* load stack size per cpu into r1 */
