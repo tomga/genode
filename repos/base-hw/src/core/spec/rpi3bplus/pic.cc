@@ -74,34 +74,33 @@ Genode::Pic::Pic()
 
 bool Genode::Pic::take_request(unsigned &irq)
 {
-  // Genode::log("!");
 	/* read basic IRQ status mask */
-	uint32_t const p = read<Irq_pending_basic>();
+  unsigned const cpu_id = Cpu::executing_id();
 
+  uint32_t p = 0;
+  switch (cpu_id) {
+  case 0: p = read<Core0IrqSrc>(); break;
+  case 1: p = read<Core1IrqSrc>(); break;
+  case 2: p = read<Core2IrqSrc>(); break;
+  case 3: p = read<Core3IrqSrc>(); break;
+  }
 
-	/* read GPU IRQ status mask */
-	uint32_t const p1 = read<Irq_pending_gpu_1>(),
-	               p2 = read<Irq_pending_gpu_2>();
+  if (Core0IrqSrc::CntPnIrq::get(p)) {
+    irq = 1; // Timer
+    return true;
+  }
+  if (Core0IrqSrc::MBox0::get(p)) {
 
-	if (Irq_pending_basic::Timer::get(p)) {
-		irq = Irq_pending_basic::Timer::SHIFT;
-		return true;
-	}
+                  switch (cpu_id) { // TODO - write only 1 bit later
+                  case 0: write<Core0Mbox0Clr>(1); break;
+                  case 1: write<Core1Mbox0Clr>(1); break;
+                  case 2: write<Core2Mbox0Clr>(1); break;
+                  case 3: write<Core3Mbox0Clr>(1); break;
+                  }
 
-	/* search for lowest set bit in pending masks */
-	for (unsigned i = 0; i < NR_OF_IRQ; i++) {
-		if (!_is_pending(i, p1, p2))
-			continue;
-
-		irq = Board::GPU_IRQ_BASE + i;
-
-		/* handle SOF interrupts locally, filter from the user land */
-		if (irq == Board::DWC_IRQ)
-			if (_usb.handle_sof())
-				return false;
-
-		return true;
-	}
+    irq = IPI; // IPI
+    return true;
+  }
 
 	return false;
 }
@@ -109,32 +108,81 @@ bool Genode::Pic::take_request(unsigned &irq)
 
 void Genode::Pic::mask()
 {
-	Genode::log("Pic::mask");
-	write<Irq_disable_basic>(~0);
-	write<Irq_disable_gpu_1>(~0);
-	write<Irq_disable_gpu_2>(~0);
+  write<Core0TIrqCtl>(0);
+  write<Core1TIrqCtl>(0);
+  write<Core2TIrqCtl>(0);
+  write<Core3TIrqCtl>(0);
+
+  write<Core0MboxCtl>(0);
+  write<Core1MboxCtl>(0);
+  write<Core2MboxCtl>(0);
+  write<Core3MboxCtl>(0);
+
+  // unmask ipi
+  for (unsigned cpu_id = 0; cpu_id < NR_OF_CPUS; cpu_id++) {
+    unmask(IPI, cpu_id);
+  }
 }
 
 
 void Genode::Pic::unmask(unsigned const i, unsigned cpu_id)
 {
-  Genode::log("Pic::unmask - ", i , " ", cpu_id);
-	if (i < 8)
-		write<Irq_enable_basic>(1 << i);
-	else if (i < 32 + 8)
-		write<Irq_enable_gpu_1>(1 << (i - 8));
-	else
-		write<Irq_enable_gpu_2>(1 << (i - 8 - 32));
+  if (i < 4) {
+    /* timer interrupts */
+    switch (cpu_id) {
+    case 0: write<Core0TIrqCtl>(read<Core0TIrqCtl>() | (1 << i)); break;
+    case 1: write<Core1TIrqCtl>(read<Core1TIrqCtl>() | (1 << i)); break;
+    case 2: write<Core2TIrqCtl>(read<Core2TIrqCtl>() | (1 << i)); break;
+    case 3: write<Core3TIrqCtl>(read<Core3TIrqCtl>() | (1 << i)); break;
+    }
+
+  } else if (i < 8) {
+    /* mbox interrupts */
+
+    switch (cpu_id) {
+    case 0: write<Core0MboxCtl>(read<Core0MboxCtl>() | (1 << (i - 4))); break;
+    case 1: write<Core1MboxCtl>(read<Core1MboxCtl>() | (1 << (i - 4))); break;
+    case 2: write<Core2MboxCtl>(read<Core2MboxCtl>() | (1 << (i - 4))); break;
+    case 3: write<Core3MboxCtl>(read<Core3MboxCtl>() | (1 << (i - 4))); break;
+    }
+
+
+  }
+
+
+	// if (i < 8)
+	// 	write<Irq_enable_basic>(1 << i);
+	// else if (i < 32 + 8)
+	// 	write<Irq_enable_gpu_1>(1 << (i - 8));
+	// else
+	// 	write<Irq_enable_gpu_2>(1 << (i - 8 - 32));
 }
 
 
 void Genode::Pic::mask(unsigned const i)
 {
-  Genode::log("Pic::mask - ", i);
-	if (i < 8)
-		write<Irq_disable_basic>(1 << i);
-	else if (i < 32 + 8)
-		write<Irq_disable_gpu_1>(1 << (i - 8));
-	else
-		write<Irq_disable_gpu_2>(1 << (i - 8 - 32));
+  if (i < 4) {
+    write<Core0TIrqCtl>(read<Core0TIrqCtl>() & ~(1 << i));
+    write<Core1TIrqCtl>(read<Core1TIrqCtl>() & ~(1 << i));
+    write<Core2TIrqCtl>(read<Core2TIrqCtl>() & ~(1 << i));
+    write<Core3TIrqCtl>(read<Core3TIrqCtl>() & ~(1 << i));
+
+  } else if (i < 8) {
+    unsigned const cpu_id = Cpu::executing_id();
+    switch (cpu_id) {
+    case 0: write<Core0MboxCtl>(read<Core0MboxCtl>() & ~(1 << (i - 4))); break;
+    case 1: write<Core1MboxCtl>(read<Core1MboxCtl>() & ~(1 << (i - 4))); break;
+    case 2: write<Core2MboxCtl>(read<Core2MboxCtl>() & ~(1 << (i - 4))); break;
+    case 3: write<Core3MboxCtl>(read<Core3MboxCtl>() & ~(1 << (i - 4))); break;
+    }
+
+  }    
+  /*else
+    if (i < 8)
+    write<Irq_disable_basic>(1 << i);
+    else if (i < 32 + 8)
+    write<Irq_disable_gpu_1>(1 << (i - 8));
+    else
+    write<Irq_disable_gpu_2>(1 << (i - 8 - 32)); */
+
 }
