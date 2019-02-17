@@ -12,6 +12,7 @@
  */
 
 #include <base/internal/crt0.h>
+#include <base/memtrace.h>
 #include <hw/assert.h>
 
 #include <boot_modules.h>
@@ -180,9 +181,11 @@ Platform::Platform()
 	core_pd->map_insert(Mapping(bootstrap_region.base, bootstrap_region.base,
 	                            bootstrap_region.size, Hw::PAGE_FLAGS_KERN_TEXT));
 
+#ifndef DISABLE_MEMTRACE
 	// 4 pages - one for each cpu
 	core_pd->map_insert(Mapping(MEMTRACE_REGION_BASE, MEMTRACE_REGION_BASE,
 	                            0x00004000, Hw::PAGE_FLAGS_KERN_IO));
+#endif
 
 	/* map memory-mapped I/O for core */
 	board.core_mmio.for_each_mapping([&] (Mapping const & m) {
