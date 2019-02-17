@@ -225,6 +225,28 @@ struct Hw::Arm_cpu
 	/* Counter Frequency register */
 	ARM_CP15_REGISTER_32BIT(Cntfrq, c14, c0, 0, 0);
 
+	/* Counter Timer Physical Count Register */
+	ARM_CP15_REGISTER_64BIT(Cntpct_64bit, c14, 0,
+		struct Lo : Bitfield<0,  32> { };
+		struct Hi : Bitfield<32, 32> { };
+	);
+
+	/* PL1 Physical Timer Value Register */
+	ARM_CP15_REGISTER_32BIT(CntpTval, c14, c2, 0, 0);
+
+	/* PL1 Physical Timer Control Register */
+	ARM_CP15_REGISTER_32BIT(CntpCtl, c14, c2, 0, 1,
+		struct Enable  : Bitfield<0, 1> { };
+		struct Imask   : Bitfield<1, 1> { };
+		struct Istatus : Bitfield<2, 1> { };
+	);
+
+	/* PL1 Physical Timer Compare Value Register */
+	ARM_CP15_REGISTER_64BIT(CntpCval_64bit, c14, 2,
+		struct Lo : Bitfield<0,  32> { };
+		struct Hi : Bitfield<32, 32> { };
+	);
+
 	/******************************
 	 ** Program status registers **
 	 ******************************/
