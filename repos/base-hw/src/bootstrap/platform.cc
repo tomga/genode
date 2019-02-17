@@ -19,7 +19,6 @@
 
 using namespace Bootstrap;
 
-
 /*****************************
  ** Platform::Ram_allocator **
  *****************************/
@@ -180,6 +179,10 @@ Platform::Platform()
 	// FIXME do not insert as mapping for core
 	core_pd->map_insert(Mapping(bootstrap_region.base, bootstrap_region.base,
 	                            bootstrap_region.size, Hw::PAGE_FLAGS_KERN_TEXT));
+
+	// 4 pages - one for each cpu
+	core_pd->map_insert(Mapping(MEMTRACE_REGION_BASE, MEMTRACE_REGION_BASE,
+	                            0x00004000, Hw::PAGE_FLAGS_KERN_IO));
 
 	/* map memory-mapped I/O for core */
 	board.core_mmio.for_each_mapping([&] (Mapping const & m) {
