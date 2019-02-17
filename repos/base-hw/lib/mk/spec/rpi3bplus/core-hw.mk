@@ -21,7 +21,7 @@ SRC_CC += spec/rpi3bplus/cpu.cc
 # add assembly sources
 SRC_S += spec/arm_v7/virtualization/exception_vector.s
 
-NR_OF_CPUS = 1
+NR_OF_CPUS = 4
 
 #
 # we need more specific compiler hints for some 'special' assembly code

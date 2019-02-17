@@ -7,7 +7,7 @@ SRC_CC  += hw/spec/arm/arm_v7_cpu.cc
 SRC_CC  += hw/spec/32bit/memory_map.cc
 SRC_S   += bootstrap/spec/arm/crt0.s
 
-NR_OF_CPUS = 1
+NR_OF_CPUS = 4
 
 #
 # we need more specific compiler hints for some 'special' assembly code
