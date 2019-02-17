@@ -1,7 +1,7 @@
 /*
  * \brief  Timer driver for core
- * \author Norman Feske
- * \date   2013-04-05
+ * \author Tomasz Gajewski
+ * \date   2019-02-15
  */
 
 /*
@@ -25,15 +25,16 @@ namespace Kernel { class Timer_driver; }
 /**
  * Timer driver for core
  *
- * Timer channel 0 apparently doesn't work on the RPI, so we use channel 1
+ * Timer channels 0 and 2 are used by GPU, so we use channel 1
  */
 struct Kernel::Timer_driver : Genode::Mmio
 {
 	enum { TICS_PER_US = Board::SYSTEM_TIMER_CLOCK / 1000 / 1000 };
 
-	struct Cs  : Register<0x0, 32> { struct M1 : Bitfield<1, 1> { }; };
-	struct Clo : Register<0x4,  32> { };
-	struct Cmp : Register<0x10, 32> { };
+	// 0x40000000
+	struct Prescaler : Register<0x08, 32> { };
+	struct TimerLS   : Register<0x1c, 32> { };
+	struct TimerMS   : Register<0x20, 32> { };
 
 	Timer_driver(unsigned cpu_id);
 
