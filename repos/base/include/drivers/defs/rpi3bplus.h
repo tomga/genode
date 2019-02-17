@@ -23,7 +23,7 @@ namespace Rpi3bplus {
 		RAM_0_SIZE = 0x10000000, /* XXX ? */
 
 		MMIO_0_BASE = 0x3f000000,
-		MMIO_0_SIZE = 0x02000000,
+		MMIO_0_SIZE = 0x01000000,
 
 		/*
 		 * IRQ numbers   0..7 refer to the basic IRQs.
@@ -32,8 +32,9 @@ namespace Rpi3bplus {
 		 */
 		GPU_IRQ_BASE = 8,
 
-		SYSTEM_TIMER_IRQ       = GPU_IRQ_BASE + 1,
-		SYSTEM_TIMER_MMIO_BASE = 0x3f003000,
+		//SYSTEM_TIMER_IRQ       = GPU_IRQ_BASE + 1,
+		SYSTEM_TIMER_IRQ       = 1,  /* physical normal */
+		SYSTEM_TIMER_MMIO_BASE = 0x40000000,
 		SYSTEM_TIMER_MMIO_SIZE = 0x1000,
 		SYSTEM_TIMER_CLOCK     = 1200000,
 
@@ -45,7 +46,8 @@ namespace Rpi3bplus {
 		PL011_0_CLOCK     = 250000000,
                 /* PL011_0_CLOCK     = 3000000, */
 
-		IRQ_CONTROLLER_BASE = 0x3F00b200,
+		/* IRQ_CONTROLLER_BASE = 0x3F00b200, */
+		IRQ_CONTROLLER_BASE = 0x40000000,
 		IRQ_CONTROLLER_SIZE = 0x100,
 
                 // FROM EXYNOS FOR NOW
@@ -77,10 +79,6 @@ namespace Rpi3bplus {
                 // FROM EXYNOS FOR NOW
 		/* hardware name of the primary processor */
 		PRIMARY_MPIDR_AFF_0 = 0,
-
-                // FROM EXYNOS FOR NOW
-		/* IRAM */
-		IRAM_BASE = 0x02020000,
 
 		/* SD card */
 		SDHCI_BASE = MMIO_0_BASE + 0x300000,

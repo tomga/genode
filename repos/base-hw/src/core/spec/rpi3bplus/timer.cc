@@ -26,16 +26,22 @@ Timer_driver::Timer_driver(unsigned cpu_id)
   Mmio(Platform::mmio_to_virt(Board::SYSTEM_TIMER_MMIO_BASE)),
   cpu_id(cpu_id)
 {
-	Genode::log("Timer_driver - ", cpu_id);
 }
 
 
 void Timer::_start_one_shot(time_t const ticks)
 {
-	_driver.write<Driver::Cs::M1>(1);
-	_driver.read<Driver::Cs>();
-	_driver.write<Driver::Clo>(0);
-	_driver.write<Driver::Cmp>(_driver.read<Driver::Clo>() + ticks);
+	/* enable timer - probably should be moved to Pic */
+	Cpu::CntpCtl::access_t cntpctl = Cpu::CntpCtl::read();
+	Cpu::CntpCtl::Enable::set(cntpctl, 1);
+	Cpu::CntpCtl::Imask::set(cntpctl, 0);
+	Cpu::CntpCtl::Istatus::set(cntpctl, 0);
+	Cpu::CntpCtl::write(cntpctl);
+
+	Cpu::Cntpct_64bit::access_t cntpct = Cpu::Cntpct_64bit::read();
+
+	Cpu::CntpCval_64bit::access_t cntpCval = cntpct + ticks;
+	Cpu::CntpCval_64bit::write(cntpCval);
 }
 
 
@@ -48,14 +54,18 @@ time_t Timer::us_to_ticks(time_t const us) const {
 
 
 time_t Timer::_max_value() const {
-	return (Driver::Clo::access_t)~0; }
+	return (Driver::TimerLS::access_t)~0; }
 
 
 time_t Timer::_value()
 {
-	Driver::Cmp::access_t const cmp = _driver.read<Driver::Cmp>();
-	Driver::Clo::access_t const clo = _driver.read<Driver::Clo>();
-	return cmp > clo ? cmp - clo : 0;
+
+	Cpu::Cntpct_64bit::access_t cntpct = Cpu::Cntpct_64bit::read();
+
+	Cpu::CntpCval_64bit::access_t cntpCval = Cpu::CntpCval_64bit::read();
+	time_t retval = cntpCval > cntpct ? cntpCval - cntpct : 0;
+
+	return retval;
 }
 
 
