@@ -14,12 +14,31 @@
 #ifndef _INCLUDE__BASE__MEMTRACE_H_
 #define _INCLUDE__BASE__MEMTRACE_H_
 
-#ifndef GENODE_RELEASE
+#ifdef GENODE_RELEASE
+#define DISABLE_MEMTRACE
+#endif
 
-#define MEMTRACE_BASE      ((volatile unsigned int**) (0x30000000))
-#define MEMTRACE_BUF_SIZE  (0x1000)    // one page mapped currently in bootstrap/platform.cc
+
+// comment to enable
+#define DISABLE_MEMTRACE
+
+
+#ifndef DISABLE_MEMTRACE
+
+#define MEMTRACE_CPU_ID \
+  int _MEMTRACE_cpuId_ = 0;                     \
+  asm volatile ( "mrc p15, 0, %0, c0, c0, 5 \n" \
+                 "and %0, %0, #0xff         \n" \
+                 : "=r" (_MEMTRACE_cpuId_) );   \
+  ;
+
+#define MEMTRACE_REGION_BASE 0x20000000
+
+#define MEMTRACE_BUF_SIZE  (0x1000)    // one page per cpu mapped currently in bootstrap/platform.cc
+#define MEMTRACE_BASE      ((volatile unsigned int**) ((MEMTRACE_REGION_BASE) + (_MEMTRACE_cpuId_ * MEMTRACE_BUF_SIZE)))
 
 #define MEMTRACE_STR4(str) {                                                                     \
+  MEMTRACE_CPU_ID;                                                                               \
   **MEMTRACE_BASE = ((str)[0] + ((str)[1]<<8) + ((str)[2]<<16) + ((str)[3]<<24));                \
   (*MEMTRACE_BASE)++;                                                                            \
   if (((unsigned int) (*MEMTRACE_BASE)) >= ((unsigned int) MEMTRACE_BASE + MEMTRACE_BUF_SIZE)) { \
@@ -30,6 +49,7 @@
 }
 
 #define MEMTRACE_UINT(uintvalue) { \
+  MEMTRACE_CPU_ID;                                                                               \
   **MEMTRACE_BASE = ((unsigned int) uintvalue);                                                  \
   (*MEMTRACE_BASE)++;                                                                            \
   if (((unsigned int) (*MEMTRACE_BASE)) >= ((unsigned int) MEMTRACE_BASE + MEMTRACE_BUF_SIZE)) { \
@@ -41,8 +61,14 @@
 
 #else
 
-#define MEMTRACE_STR4(str) {}
-#define MEMTRACE_UINT(str) {}
+
+// // not empty to silence compiler errors due to unused variables
+// // but in consequence expressions should not be used as they will have side effects
+// #define MEMTRACE_STR4(str) { (void)(str); }
+// #define MEMTRACE_UINT(uintvalue) { (void)(uintvalue); }
+
+#define MEMTRACE_STR4(str)
+#define MEMTRACE_UINT(uintvalue)
 
 #endif /* GENODE_RELEASE */
 
