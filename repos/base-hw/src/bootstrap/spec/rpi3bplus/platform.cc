@@ -65,7 +65,7 @@ static inline void prepare_nonsecure_world()
 	if (Cpu::Psr::M::get(Cpu::Cpsr::read()) == Cpu::Psr::M::HYP)
 		return;
 
-        // for rpi3bplus we never get here
+	// for rpi3bplus we never get here
 
 	/* ARM generic timer counter freq needs to be set in secure mode */
 	volatile unsigned long * mct_control = (unsigned long*) 0x101C0240;
@@ -166,22 +166,19 @@ static inline void prepare_hypervisor(Genode::addr_t table)
 
 static inline void switch_to_supervisor_mode()
 {
-	using Cpsr = Hw::Arm_cpu::Psr;
-
-	Cpsr::access_t cpsr = 0;
-	Cpsr::M::set(cpsr, Cpsr::M::SVC);
-	Cpsr::F::set(cpsr, 1);
-	Cpsr::I::set(cpsr, 1);
-
 	asm volatile (
 		"msr sp_svc, sp        \n" /* copy current mode's sp           */
 		"msr lr_svc, lr        \n" /* copy current mode's lr           */
-		"msr elr_hyp, lr       \n" /* copy current mode's lr to hyp lr */
 		"msr sp_hyp, %[stack]  \n" /* copy to hyp stack pointer        */
-		"msr spsr_cxfs, %[cpsr] \n" /* set psr for supervisor mode      */
-		"adr lr, 1f            \n" /* load exception return address    */
-		"eret                  \n" /* exception return                 */
-		"1:":: [cpsr] "r" (cpsr), [stack] "r" (&hyp_mode_stack));
+
+		"mrs r0, cpsr          \n"
+		"bic r0, r0, #0x1F     \n"
+		"orr r0, r0, #0x13     \n"
+		"msr spsr_cxsf, r0     \n"
+		"add r0, pc, #4        \n"
+		"msr ELR_hyp,r0        \n"
+		"eret                  \n"
+		"1:":: [stack] "r" (&hyp_mode_stack) : "r0" );
 }
 
 
