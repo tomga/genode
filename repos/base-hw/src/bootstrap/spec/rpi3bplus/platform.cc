@@ -65,6 +65,8 @@ static inline void prepare_nonsecure_world()
 	if (Cpu::Psr::M::get(Cpu::Cpsr::read()) == Cpu::Psr::M::HYP)
 		return;
 
+        // for rpi3bplus we never get here
+
 	/* ARM generic timer counter freq needs to be set in secure mode */
 	volatile unsigned long * mct_control = (unsigned long*) 0x101C0240;
 	*mct_control = 0x100;
@@ -211,6 +213,11 @@ unsigned Bootstrap::Platform::enable_mmu()
 
 void Bootstrap::Cpu::wake_up_all_cpus(void * const ip)
 {
-	*(void * volatile *)Board::IRAM_BASE = ip;
+	// Genode::log("wake_up_all_cpus ", ip, " ", (void*)(Board::SYSTEM_TIMER_MMIO_BASE + 0x9c));
+	*(void * volatile *)(Board::SYSTEM_TIMER_MMIO_BASE + 0x9c) = ip; // cpu 1
+	*(void * volatile *)(Board::SYSTEM_TIMER_MMIO_BASE + 0xac) = ip; // cpu 2
+	*(void * volatile *)(Board::SYSTEM_TIMER_MMIO_BASE + 0xbc) = ip; // cpu 3
+
+	// is it needed for rpi3bplus
 	asm volatile("dsb; sev;");
 }
