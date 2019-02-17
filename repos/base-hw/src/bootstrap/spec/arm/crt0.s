@@ -62,6 +62,11 @@
 	.global _start_setup_stack  /* entrypoint for all cpus */
 	_start_setup_stack:
 
+
+.include "base/memtrace.s"
+
+        MEMTRACE_INIT
+
 	mrs r2, cpsr
 	cmp r2, #31                 /* check for system mode */
 	mrcne p15, 0, sp, c0, c0, 5 /* read multiprocessor affinity register */
@@ -74,6 +79,9 @@
 	cps #19                     /* change to supervisor mode */
 	_after_setting_supervisor_mode:
 
+        MEMTRACE_STR4 #'_', #'C', #'P', #'U'
+        MEMTRACE_REG4 sp
+
 	adr r0, _start_stack        /* load stack address into r0 */
 	adr r1, _start_stack_size   /* load stack size per cpu into r1 */
 	ldr r1, [r1]
@@ -82,6 +90,9 @@
 	mul r1, r1, sp
 	add sp, r0, r1
 
+        MEMTRACE_STR4 #'_', #'S', #'P', #'_'
+        MEMTRACE_REG4 sp
+        MEMTRACE_STR4 #'_', #'_', #'_', #'_'
 
 	/****************
 	 ** Enable VFP **
