@@ -31,6 +31,8 @@ Timer_driver::Timer_driver(unsigned cpu_id)
 
 void Timer::_start_one_shot(time_t const ticks)
 {
+	using Cpu = Hw::Arm_cpu;
+
 	/* enable timer - probably should be moved to Pic */
 	Cpu::CntpCtl::access_t cntpctl = Cpu::CntpCtl::read();
 	Cpu::CntpCtl::Enable::set(cntpctl, 1);
@@ -59,6 +61,7 @@ time_t Timer::_max_value() const {
 
 time_t Timer::_value()
 {
+	using Cpu = Hw::Arm_cpu;
 
 	Cpu::Cntpct_64bit::access_t cntpct = Cpu::Cntpct_64bit::read();
 
