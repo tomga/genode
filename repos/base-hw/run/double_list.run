@@ -14,13 +14,16 @@ create_boot_directory
 install_config {
 	<config>
 		<parent-provides>
+			<service name="CPU"/>
 			<service name="LOG"/>
+			<service name="PD"/>
+			<service name="ROM"/>
 			<service name="RM"/>
 		</parent-provides>
 		<default-route>
 			<any-service> <parent/> </any-service>
 		</default-route>
-		<start name="test-double_list">
+		<start name="test-double_list" caps="50">
 			<resource name="RAM" quantum="10M"/>
 		</start>
 	</config>
