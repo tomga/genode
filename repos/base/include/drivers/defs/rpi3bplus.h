@@ -36,7 +36,7 @@ namespace Rpi3bplus {
 		SYSTEM_TIMER_IRQ       = 1,  /* physical normal */
 		SYSTEM_TIMER_MMIO_BASE = 0x40000000,
 		SYSTEM_TIMER_MMIO_SIZE = 0x1000,
-		SYSTEM_TIMER_CLOCK     = 1200000,
+		SYSTEM_TIMER_CLOCK     = 19200000, // value taken from Cpu::Cntfrq
 
 		/* PL011_0_IRQ       = 57, */
 		/* PL011_0_MMIO_BASE = 0x3f201000, */
