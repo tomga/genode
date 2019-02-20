@@ -31,11 +31,6 @@ struct Kernel::Timer_driver : Genode::Mmio
 {
 	enum { TICS_PER_US = Board::SYSTEM_TIMER_CLOCK / 1000 / 1000 };
 
-	// 0x40000000
-	struct Prescaler : Register<0x08, 32> { };
-	struct TimerLS   : Register<0x1c, 32> { };
-	struct TimerMS   : Register<0x20, 32> { };
-
 	Timer_driver(unsigned cpu_id);
 
 	unsigned const cpu_id;

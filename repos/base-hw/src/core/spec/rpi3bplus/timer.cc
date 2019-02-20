@@ -56,7 +56,7 @@ time_t Timer::us_to_ticks(time_t const us) const {
 
 
 time_t Timer::_max_value() const {
-	return (Driver::TimerLS::access_t)~0; }
+	return ~0UL; }
 
 
 time_t Timer::_value()
