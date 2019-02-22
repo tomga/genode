@@ -351,7 +351,8 @@ class Lx_fs::Session_component : public Session_rpc_object
 			}
 		}
 
-		void move(Dir_handle dir_from, Name const & name_from, Dir_handle dir_to, Name const & name_to)
+		void move(Dir_handle dir_from, Name const & name_from,
+		          Dir_handle dir_to,   Name const & name_to) override
 		{
 			typedef File_system::Open_node<Directory> Dir_node;
 
