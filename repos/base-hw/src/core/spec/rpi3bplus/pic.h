@@ -92,208 +92,57 @@ class Genode::Pic : Mmio
 	private:
                 // timer related registers
 
-                struct Core0TIrqCtl  : Register<0x40, 32>
-                  {
-                    struct NCntPsIrq : Bitfield<0, 1> { };
-                    struct NCntPnIrq : Bitfield<1, 1> { };
-                    struct NCntHpIrq : Bitfield<2, 1> { };
-                    struct NCntVIrq  : Bitfield<3, 1> { };
-                    struct NCntPsFiq : Bitfield<4, 1> { };
-                    struct NCntPnFiq : Bitfield<5, 1> { };
-                    struct NCntHpFiq : Bitfield<6, 1> { };
-                    struct NCntVFiq  : Bitfield<7, 1> { };
-                  };
+		struct CoreTIrqCtl  : Register_array<0x40, 32, 4, 32>
+			{
+				struct NCntPsIrq : Bitfield<0, 1> { };
+				struct NCntPnIrq : Bitfield<1, 1> { };
+				struct NCntHpIrq : Bitfield<2, 1> { };
+				struct NCntVIrq  : Bitfield<3, 1> { };
+				struct NCntPsFiq : Bitfield<4, 1> { };
+				struct NCntPnFiq : Bitfield<5, 1> { };
+				struct NCntHpFiq : Bitfield<6, 1> { };
+				struct NCntVFiq  : Bitfield<7, 1> { };
+			};
 
-                struct Core1TIrqCtl  : Register<0x44, 32>
-                  {
-                    struct NCntPsIrq : Bitfield<0, 1> { };
-                    struct NCntPnIrq : Bitfield<1, 1> { };
-                    struct NCntHpIrq : Bitfield<2, 1> { };
-                    struct NCntVIrq  : Bitfield<3, 1> { };
-                    struct NCntPsFiq : Bitfield<4, 1> { };
-                    struct NCntPnFiq : Bitfield<5, 1> { };
-                    struct NCntHpFiq : Bitfield<6, 1> { };
-                    struct NCntVFiq  : Bitfield<7, 1> { };
-                  };
+		struct CoreIrqSrc  : Register_array<0x60, 32, 4, 32>
+			{
+				struct CntPsIrq : Bitfield<0, 1> { };
+				struct CntPnIrq : Bitfield<1, 1> { };
+				struct CntHpIrq : Bitfield<2, 1> { };
+				struct CntVIrq  : Bitfield<3, 1> { };
+				struct MBox0    : Bitfield<4, 1> { };
+				struct MBox1    : Bitfield<5, 1> { };
+				struct MBox2    : Bitfield<6, 1> { };
+				struct MBox3    : Bitfield<7, 1> { };
+				struct Gpu      : Bitfield<8, 1> { };
+				struct Pmu      : Bitfield<9, 1> { };
+				struct Axi      : Bitfield<10, 1> { };
+				struct Timer    : Bitfield<11, 1> { };
+			};
 
-                struct Core2TIrqCtl  : Register<0x48, 32>
-                  {
-                    struct NCntPsIrq : Bitfield<0, 1> { };
-                    struct NCntPnIrq : Bitfield<1, 1> { };
-                    struct NCntHpIrq : Bitfield<2, 1> { };
-                    struct NCntVIrq  : Bitfield<3, 1> { };
-                    struct NCntPsFiq : Bitfield<4, 1> { };
-                    struct NCntPnFiq : Bitfield<5, 1> { };
-                    struct NCntHpFiq : Bitfield<6, 1> { };
-                    struct NCntVFiq  : Bitfield<7, 1> { };
-                  };
+		// mailboxes related registers
 
-                struct Core3TIrqCtl  : Register<0x4c, 32>
-                  {
-                    struct NCntPsIrq : Bitfield<0, 1> { };
-                    struct NCntPnIrq : Bitfield<1, 1> { };
-                    struct NCntHpIrq : Bitfield<2, 1> { };
-                    struct NCntVIrq  : Bitfield<3, 1> { };
-                    struct NCntPsFiq : Bitfield<4, 1> { };
-                    struct NCntPnFiq : Bitfield<5, 1> { };
-                    struct NCntHpFiq : Bitfield<6, 1> { };
-                    struct NCntVFiq  : Bitfield<7, 1> { };
-                  };
+		struct CoreMboxCtl  : Register_array<0x50, 32, 4, 32>
+			{
+				struct Irq0 : Bitfield<0, 1> { };
+				struct Irq1 : Bitfield<1, 1> { };
+				struct Irq2 : Bitfield<2, 1> { };
+				struct Irq3 : Bitfield<3, 1> { };
+				struct Fiq0 : Bitfield<4, 1> { };
+				struct Fiq1 : Bitfield<5, 1> { };
+				struct Fiq2 : Bitfield<6, 1> { };
+				struct Fiq3 : Bitfield<7, 1> { };
+			};
 
+		struct CoreMbox0Set  : Register_array<0x80, 32, 4, 32>
+			{
+				struct Bit0 : Bitfield<0, 1> { };
+			};
 
-                struct Core0IrqSrc  : Register<0x60, 32>
-                  {
-                    struct CntPsIrq : Bitfield<0, 1> { };
-                    struct CntPnIrq : Bitfield<1, 1> { };
-                    struct CntHpIrq : Bitfield<2, 1> { };
-                    struct CntVIrq  : Bitfield<3, 1> { };
-                    struct MBox0    : Bitfield<4, 1> { };
-                    struct MBox1    : Bitfield<5, 1> { };
-                    struct MBox2    : Bitfield<6, 1> { };
-                    struct MBox3    : Bitfield<7, 1> { };
-                    struct Gpu      : Bitfield<8, 1> { };
-                    struct Pmu      : Bitfield<9, 1> { };
-                    struct Axi      : Bitfield<10, 1> { };
-                    struct Timer    : Bitfield<11, 1> { };
-                  };
-
-                struct Core1IrqSrc  : Register<0x64, 32>
-                  {
-                    struct CntPsIrq : Bitfield<0, 1> { };
-                    struct CntPnIrq : Bitfield<1, 1> { };
-                    struct CntHpIrq : Bitfield<2, 1> { };
-                    struct CntVIrq  : Bitfield<3, 1> { };
-                    struct MBox0    : Bitfield<4, 1> { };
-                    struct MBox1    : Bitfield<5, 1> { };
-                    struct MBox2    : Bitfield<6, 1> { };
-                    struct MBox3    : Bitfield<7, 1> { };
-                    struct Gpu      : Bitfield<8, 1> { };
-                    struct Pmu      : Bitfield<9, 1> { };
-                    struct Axi      : Bitfield<10, 1> { };
-                    struct Timer    : Bitfield<11, 1> { };
-                  };
-
-                struct Core2IrqSrc  : Register<0x68, 32>
-                  {
-                    struct CntPsIrq : Bitfield<0, 1> { };
-                    struct CntPnIrq : Bitfield<1, 1> { };
-                    struct CntHpIrq : Bitfield<2, 1> { };
-                    struct CntVIrq  : Bitfield<3, 1> { };
-                    struct MBox0    : Bitfield<4, 1> { };
-                    struct MBox1    : Bitfield<5, 1> { };
-                    struct MBox2    : Bitfield<6, 1> { };
-                    struct MBox3    : Bitfield<7, 1> { };
-                    struct Gpu      : Bitfield<8, 1> { };
-                    struct Pmu      : Bitfield<9, 1> { };
-                    struct Axi      : Bitfield<10, 1> { };
-                    struct Timer    : Bitfield<11, 1> { };
-                  };
-
-                struct Core3IrqSrc  : Register<0x6c, 32>
-                  {
-                    struct CntPsIrq : Bitfield<0, 1> { };
-                    struct CntPnIrq : Bitfield<1, 1> { };
-                    struct CntHpIrq : Bitfield<2, 1> { };
-                    struct CntVIrq  : Bitfield<3, 1> { };
-                    struct MBox0    : Bitfield<4, 1> { };
-                    struct MBox1    : Bitfield<5, 1> { };
-                    struct MBox2    : Bitfield<6, 1> { };
-                    struct MBox3    : Bitfield<7, 1> { };
-                    struct Gpu      : Bitfield<8, 1> { };
-                    struct Pmu      : Bitfield<9, 1> { };
-                    struct Axi      : Bitfield<10, 1> { };
-                    struct Timer    : Bitfield<11, 1> { };
-                  };
-
-
-                // mailboxes related registers
-
-                struct Core0MboxCtl  : Register<0x50, 32>
-                  {
-                    struct Irq0 : Bitfield<0, 1> { };
-                    struct Irq1 : Bitfield<1, 1> { };
-                    struct Irq2 : Bitfield<2, 1> { };
-                    struct Irq3 : Bitfield<3, 1> { };
-                    struct Fiq0 : Bitfield<4, 1> { };
-                    struct Fiq1 : Bitfield<5, 1> { };
-                    struct Fiq2 : Bitfield<6, 1> { };
-                    struct Fiq3 : Bitfield<7, 1> { };
-                  };
-
-
-                struct Core1MboxCtl  : Register<0x54, 32>
-                  {
-                    struct Irq0 : Bitfield<0, 1> { };
-                    struct Irq1 : Bitfield<1, 1> { };
-                    struct Irq2 : Bitfield<2, 1> { };
-                    struct Irq3 : Bitfield<3, 1> { };
-                    struct Fiq0 : Bitfield<4, 1> { };
-                    struct Fiq1 : Bitfield<5, 1> { };
-                    struct Fiq2 : Bitfield<6, 1> { };
-                    struct Fiq3 : Bitfield<7, 1> { };
-                  };
-
-
-                struct Core2MboxCtl  : Register<0x58, 32>
-                  {
-                    struct Irq0 : Bitfield<0, 1> { };
-                    struct Irq1 : Bitfield<1, 1> { };
-                    struct Irq2 : Bitfield<2, 1> { };
-                    struct Irq3 : Bitfield<3, 1> { };
-                    struct Fiq0 : Bitfield<4, 1> { };
-                    struct Fiq1 : Bitfield<5, 1> { };
-                    struct Fiq2 : Bitfield<6, 1> { };
-                    struct Fiq3 : Bitfield<7, 1> { };
-                  };
-
-
-                struct Core3MboxCtl  : Register<0x5c, 32>
-                  {
-                    struct Irq0 : Bitfield<0, 1> { };
-                    struct Irq1 : Bitfield<1, 1> { };
-                    struct Irq2 : Bitfield<2, 1> { };
-                    struct Irq3 : Bitfield<3, 1> { };
-                    struct Fiq0 : Bitfield<4, 1> { };
-                    struct Fiq1 : Bitfield<5, 1> { };
-                    struct Fiq2 : Bitfield<6, 1> { };
-                    struct Fiq3 : Bitfield<7, 1> { };
-                  };
-
-
-                struct Core0Mbox0Set  : Register<0x80, 32>
-                  {
-                    struct Bit0 : Bitfield<0, 1> { };
-                  };
-                struct Core1Mbox0Set  : Register<0x90, 32>
-                  {
-                    struct Bit0 : Bitfield<0, 1> { };
-                  };
-                struct Core2Mbox0Set  : Register<0xa0, 32>
-                  {
-                    struct Bit0 : Bitfield<0, 1> { };
-                  };
-                struct Core3Mbox0Set  : Register<0xb0, 32>
-                  {
-                    struct Bit0 : Bitfield<0, 1> { };
-                  };
-
-
-                struct Core0Mbox0Clr  : Register<0xc0, 32>
-                  {
-                    struct Bit0 : Bitfield<0, 1> { };
-                  };
-                struct Core1Mbox0Clr  : Register<0xd0, 32>
-                  {
-                    struct Bit0 : Bitfield<0, 1> { };
-                  };
-                struct Core2Mbox0Clr  : Register<0xe0, 32>
-                  {
-                    struct Bit0 : Bitfield<0, 1> { };
-                  };
-                struct Core3Mbox0Clr  : Register<0xf0, 32>
-                  {
-                    struct Bit0 : Bitfield<0, 1> { };
-                  };
+		struct CoreMbox0Clr  : Register_array<0xc0, 32, 4, 32>
+			{
+				struct Bit0 : Bitfield<0, 1> { };
+			};
 
 
 		Usb_dwc_otg _usb { };
@@ -320,13 +169,8 @@ class Genode::Pic : Mmio
 		 * Raise inter-processor IRQ of the CPU with kernel name 'cpu_id'
 		 */
 		void send_ipi(unsigned const cpu_id) {
-                  switch (cpu_id) { // TODO - write only 1 bit later
-                  case 0: write<Core0Mbox0Set>(1); break;
-                  case 1: write<Core1Mbox0Set>(1); break;
-                  case 2: write<Core2Mbox0Set>(1); break;
-                  case 3: write<Core3Mbox0Set>(1); break;
-                  }
-                }
+			write<CoreMbox0Set>(1, cpu_id);
+		}
 
 		/**
 		 * Raise inter-processor interrupt on all other cores
