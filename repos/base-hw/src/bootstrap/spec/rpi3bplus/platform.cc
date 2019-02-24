@@ -29,8 +29,8 @@ using namespace Board;
 // mixed version
 Bootstrap::Platform::Board::Board()
 : early_ram_regions(Memory_region { RAM_0_BASE, RAM_0_SIZE }),
-  core_mmio(Memory_region { PL011_0_MMIO_BASE,
-                            PL011_0_MMIO_SIZE },
+  core_mmio(Memory_region { MINIUART_MMIO_BASE,
+                            MINIUART_MMIO_SIZE },
             Memory_region { SYSTEM_TIMER_MMIO_BASE,
                             SYSTEM_TIMER_MMIO_SIZE },
             Memory_region { IRQ_CONTROLLER_BASE,

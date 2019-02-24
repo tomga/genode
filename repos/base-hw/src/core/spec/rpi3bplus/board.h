@@ -26,8 +26,8 @@ namespace Board {
 	using Serial   = Genode::Mini_uart;
 
 	enum {
-		UART_BASE  = Rpi3bplus::PL011_0_MMIO_BASE,
-		UART_CLOCK = Rpi3bplus::PL011_0_CLOCK,
+		UART_BASE  = Rpi3bplus::MINIUART_MMIO_BASE,
+		UART_CLOCK = Rpi3bplus::MINIUART_CLOCK,
 	};
 
 	static constexpr bool SMP = true;
