@@ -20,7 +20,7 @@
 namespace Rpi3bplus {
 	enum {
 		RAM_0_BASE = 0x00000000,
-		RAM_0_SIZE = 0x10000000, /* XXX ? */
+		RAM_0_SIZE = 0x3b400000, /* from rpi3b+.dts */
 
 		MMIO_0_BASE = 0x3f000000,
 		MMIO_0_SIZE = 0x01000000,
