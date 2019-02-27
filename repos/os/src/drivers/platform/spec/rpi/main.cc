@@ -50,9 +50,25 @@ class Platform::Session_component : public Genode::Rpc_object<Platform::Session>
 
 		void setup_framebuffer(Framebuffer_info &info) override
 		{
-			auto const &msg = _mbox.message<Framebuffer_message>(info);
-			_mbox.call<Framebuffer_message>();
-			info = msg;
+			{
+				auto &msg = _mbox.message<Property_message>();
+				auto const &res = msg.append<Property_command::Get_physical_w_h>();
+				_mbox.call<Property_message>();
+				log("Get_physical_w_h: ", res.width, "x", res.height);
+			}
+
+			auto &msg = _mbox.message<Property_message>();
+			msg.append<Property_command::Set_physical_w_h>(info.phys_width, info.phys_height);
+			msg.append<Property_command::Set_virtual_w_h>(info.virt_width, info.virt_height);
+			msg.append<Property_command::Set_depth>(info.depth);
+			auto const &res = msg.append<Property_command::Allocate_buffer>();
+			_mbox.call<Property_message>();
+
+			info.addr = res.address & ~0xC0000000; // bus to phys memory translation
+			                                       // TODO: make a function for this
+			info.size = res.size;
+
+			log("setup_framebuffer ", (void*) info.addr, ", ", info.size, ", ", info.phys_width, ", ", info.phys_height);
 		}
 
 		bool power_state(Power id) override
