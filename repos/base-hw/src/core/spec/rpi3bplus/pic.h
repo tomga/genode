@@ -134,12 +134,14 @@ class Genode::Pic : Mmio
 				struct Fiq3 : Bitfield<7, 1> { };
 			};
 
-		struct CoreMbox0Set  : Register_array<0x80, 32, 4, 32>
+		const uint8_t MBOX0_OFFSET = 0;
+
+		struct CoreMboxSet  : Register_array<0x80, 32, 4 * 4, 32>
 			{
 				struct Bit0 : Bitfield<0, 1> { };
 			};
 
-		struct CoreMbox0Clr  : Register_array<0xc0, 32, 4, 32>
+		struct CoreMboxClr  : Register_array<0xc0, 32, 4 * 4, 32>
 			{
 				struct Bit0 : Bitfield<0, 1> { };
 			};
@@ -169,7 +171,7 @@ class Genode::Pic : Mmio
 		 * Raise inter-processor IRQ of the CPU with kernel name 'cpu_id'
 		 */
 		void send_ipi(unsigned const cpu_id) {
-			write<CoreMbox0Set>(1, cpu_id);
+			write<CoreMboxSet>(1, cpu_id * NR_OF_CPUS + MBOX0_OFFSET);
 		}
 
 		/**
