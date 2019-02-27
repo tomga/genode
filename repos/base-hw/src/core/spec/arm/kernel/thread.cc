@@ -65,10 +65,10 @@ void Kernel::Thread::_call_update_data_region()
 	 *        address space so we can use virtual addresses of the caller. Up
 	 *        until then we apply operations to caches as a whole instead.
 	 */
-	if (!_core) {
-		cpu.clean_invalidate_data_cache();
-		return;
-	}
+	// if (!_core) {
+	// 	cpu.clean_invalidate_data_cache();
+	// 	return;
+	// }
 	auto base = (addr_t)user_arg_1();
 	auto const size = (size_t)user_arg_2();
 	cpu.clean_invalidate_data_cache_by_virt_region(base, size);
@@ -89,11 +89,11 @@ void Kernel::Thread::_call_update_instr_region()
 	 *        address space so we can use virtual addresses of the caller. Up
 	 *        until then we apply operations to caches as a whole instead.
 	 */
-	if (!_core) {
-		cpu.clean_invalidate_data_cache();
-		cpu.invalidate_instr_cache();
-		return;
-	}
+	// if (!_core) {
+	// 	cpu.clean_invalidate_data_cache();
+	// 	cpu.invalidate_instr_cache();
+	// 	return;
+	// }
 	auto base = (addr_t)user_arg_1();
 	auto const size = (size_t)user_arg_2();
 	cpu.clean_invalidate_data_cache_by_virt_region(base, size);
