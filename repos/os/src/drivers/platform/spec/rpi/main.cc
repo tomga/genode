@@ -12,10 +12,12 @@
  */
 
 /* Genode includes */
+#include <base/attached_rom_dataspace.h>
 #include <base/log.h>
 #include <base/component.h>
 #include <base/heap.h>
 #include <root/component.h>
+#include <util/xml_node.h>
 
 /* platform includes */
 #include <platform_session/platform_session.h>
@@ -50,9 +52,25 @@ class Platform::Session_component : public Genode::Rpc_object<Platform::Session>
 
 		void setup_framebuffer(Framebuffer_info &info) override
 		{
-			auto const &msg = _mbox.message<Framebuffer_message>(info);
-			_mbox.call<Framebuffer_message>();
-			info = msg;
+			{
+				auto &msg = _mbox.message<Property_message>();
+				auto const &res = msg.append<Property_command::Get_physical_w_h>();
+				_mbox.call<Property_message>();
+				log("Get_physical_w_h: ", res.width, "x", res.height);
+			}
+
+			auto &msg = _mbox.message<Property_message>();
+			msg.append<Property_command::Set_physical_w_h>(info.phys_width, info.phys_height);
+			msg.append<Property_command::Set_virtual_w_h>(info.virt_width, info.virt_height);
+			msg.append<Property_command::Set_depth>(info.depth);
+			auto const &res = msg.append<Property_command::Allocate_buffer>();
+			_mbox.call<Property_message>();
+
+			info.addr = res.address & ~0xC0000000; // bus to phys memory translation
+			                                       // TODO: make a function for this
+			info.size = res.size;
+
+			log("setup_framebuffer ", (void*) info.addr, ", ", info.size, ", ", info.phys_width, ", ", info.phys_height);
 		}
 
 		bool power_state(Power id) override
@@ -93,8 +111,9 @@ class Platform::Root : public Genode::Root_component<Platform::Session_component
 
 	public:
 
-		Root(Env& env, Allocator & md_alloc)
-		: Root_component<Session_component>(env.ep(), md_alloc), _mbox(env)
+		Root(Env& env, Allocator & md_alloc, int rpi_version)
+		: Root_component<Session_component>(env.ep(), md_alloc),
+			_mbox(env, rpi_version)
 		{ }
 };
 
@@ -103,11 +122,24 @@ struct Main
 {
 	Genode::Env &  env;
 	Genode::Heap   heap { env.ram(), env.rm() };
-	Platform::Root root { env, heap };
+
+	Genode::Attached_rom_dataspace _config { env, "config" };
+
+	Platform::Root root { env, heap, config_rpi_version(_config.xml()) };
 
 	Main(Genode::Env & env) : env(env) {
+		Genode::log("rpi_version ", config_rpi_version(_config.xml()));
+
 		env.parent().announce(env.ep().manage(root)); }
+
+private:
+	static int config_rpi_version(Genode::Xml_node node)
+	{
+		return node.attribute_value("rpi_version", 1UL);
+	}
+
 };
+
 
 
 void Component::construct(Genode::Env &env)

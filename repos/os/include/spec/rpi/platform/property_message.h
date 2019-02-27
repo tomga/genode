@@ -39,9 +39,10 @@ struct Platform::Property_message
 	uint32_t buf_size = 0;
 
 	enum Code { REQUEST          = 0,
-	            RESPONSE_SUCCESS = 0x80000000 };
+	            RESPONSE_SUCCESS = 0x80000000,
+	            RESPONSE_ERROR   = 0x80000001 };
 
-	Code code = REQUEST;
+	volatile Code code = REQUEST;
 
 	/*
 	 * Start of the buffer that contains a sequence of tags
@@ -194,14 +195,14 @@ struct Platform::Property_message
 	{
 		/* append end tag */
 		*(uint32_t *)(buffer + buf_size) = 0;
-		buf_size += sizeof(uint32_t);
+		buf_size += 3 * sizeof(uint32_t); /* end tag, and header(buf_size and code) */
 	}
 
 	static unsigned channel() { return 8; }
 
 	static Rpi::Videocore_cache_policy cache_policy()
 	{
-		return Rpi::NON_COHERENT; /* for channel 8 only */
+		return Rpi::UNCACHED;
 	}
 
 	void dump(char const *label)
