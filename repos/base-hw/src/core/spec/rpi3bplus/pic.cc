@@ -86,7 +86,7 @@ bool Genode::Pic::take_request(unsigned &irq)
 	if (CoreIrqSrc::MBox0::get(p)) {
 
 		// TODO - write only 1 bit later
-		write<CoreMbox0Clr>(1, cpu_id);
+		write<CoreMboxClr>(1, cpu_id * NR_OF_CPUS + MBOX0_OFFSET);
 
 		irq = IPI; // IPI
 		return true;
