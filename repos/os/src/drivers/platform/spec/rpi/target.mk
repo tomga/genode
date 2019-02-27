@@ -1,6 +1,6 @@
 TARGET   = platform_drv
-REQUIRES = rpi
 SRC_CC   = main.cc
+INC_DIR += $(REP_DIR)/include/spec/rpi
 INC_DIR += ${PRG_DIR}
 LIBS     = base
 
