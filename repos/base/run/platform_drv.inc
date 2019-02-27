@@ -6,6 +6,8 @@ proc have_platform_drv {} {
 	return [expr [have_spec arndale] \
 	          || [have_spec imx53] \
 	          || [have_spec rpi] \
+	          || [have_spec rpi2] \
+	          || [have_spec rpi3_32] \
 	          || [have_spec odroid_x2] \
 	          || [have_spec x86]]
 }
@@ -273,7 +275,7 @@ proc platform_drv_config {} {
 		append_if [expr [have_spec x86] && ![have_spec muen]] drv_config {
 			<service name="ROM" label="acpi"> <child name="acpi_report_rom"/> </service>}
 
-		append_if [have_spec rpi] drv_config {
+		append_if [expr [have_spec rpi] || [have_spec rpi2] || [have_spec rpi3_32] ] drv_config {
 			<service name="Timer"> <any-child/> </service>}
 
 		append drv_config {
