@@ -127,6 +127,41 @@ namespace Property_command {
 			Request(uint32_t width, uint32_t height)
 			: width(width), height(height) { }
 		};
+
+		struct Response	{};
+	};
+
+
+	struct Set_virtual_w_h
+	{
+		static uint32_t opcode() { return 0x00048004; };
+
+		struct Request
+		{
+			uint32_t const width;
+			uint32_t const height;
+
+			Request(uint32_t width, uint32_t height)
+			: width(width), height(height) { }
+		};
+
+		struct Response	{};
+	};
+
+
+	struct Set_depth
+	{
+		static uint32_t opcode() { return 0x00048005; };
+
+		struct Request
+		{
+			uint32_t const depth;
+
+			Request(uint32_t depht)
+			: depth(depht) { }
+		};
+
+		struct Response	{};
 	};
 }
 

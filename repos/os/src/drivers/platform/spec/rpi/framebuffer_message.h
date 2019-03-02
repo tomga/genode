@@ -19,7 +19,7 @@
 #include <base/log.h>
 
 /* board-specific includes */
-#include <drivers/defs/rpi.h>
+#include <drivers/defs/rpi3bplus.h>
 #include <platform/framebuffer_info.h>
 
 namespace Platform { struct Framebuffer_message; }
@@ -36,8 +36,8 @@ struct Platform::Framebuffer_message : Framebuffer_info
 
 	static unsigned channel() { return 1; }
 
-	static Rpi::Videocore_cache_policy cache_policy() {
-		return Rpi::COHERENT;
+	static Rpi3bplus::Videocore_cache_policy cache_policy() {
+		return Rpi3bplus::COHERENT;
 	}
 
 	void dump(char const *label)
