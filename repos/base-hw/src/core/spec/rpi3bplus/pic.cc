@@ -75,18 +75,18 @@ Genode::Pic_bcm2836::Pic_bcm2836()
 
 bool Genode::Pic_bcm2836::take_request(unsigned &irq)
 {
-	/* read basic IRQ status mask */
-	uint32_t const p = read<Irq_pending_basic>();
+	// /* read basic IRQ status mask */
+	// uint32_t const p = read<Irq_pending_basic>();
 
 
 	/* read GPU IRQ status mask */
 	uint32_t const p1 = read<Irq_pending_gpu_1>(),
 	               p2 = read<Irq_pending_gpu_2>();
 
-	if (Irq_pending_basic::Timer::get(p)) {
-		irq = Irq_pending_basic::Timer::SHIFT;
-		return true;
-	}
+	// if (Irq_pending_basic::Timer::get(p)) {
+	// 	irq = Irq_pending_basic::Timer::SHIFT;
+	// 	return true;
+	// }
 
 	/* search for lowest set bit in pending masks */
 	for (unsigned i = 0; i < NR_OF_IRQ; i++) {
@@ -109,7 +109,7 @@ bool Genode::Pic_bcm2836::take_request(unsigned &irq)
 
 void Genode::Pic_bcm2836::mask()
 {
-	write<Irq_disable_basic>(~0);
+	// write<Irq_disable_basic>(~0);
 	write<Irq_disable_gpu_1>(~0);
 	write<Irq_disable_gpu_2>(~0);
 }
@@ -118,7 +118,7 @@ void Genode::Pic_bcm2836::mask()
 void Genode::Pic_bcm2836::unmask(unsigned const i, unsigned)
 {
 	if (i < 8)
-		write<Irq_enable_basic>(1 << i);
+		return; /* write<Irq_enable_basic>(1 << i); */
 	else if (i < 32 + 8)
 		write<Irq_enable_gpu_1>(1 << (i - 8));
 	else
@@ -129,7 +129,7 @@ void Genode::Pic_bcm2836::unmask(unsigned const i, unsigned)
 void Genode::Pic_bcm2836::mask(unsigned const i)
 {
 	if (i < 8)
-		write<Irq_disable_basic>(1 << i);
+		return; /* write<Irq_disable_basic>(1 << i); */
 	else if (i < 32 + 8)
 		write<Irq_disable_gpu_1>(1 << (i - 8));
 	else
@@ -162,26 +162,9 @@ bool Genode::Pic::take_request(unsigned &irq)
 		return true;
 	}
 
-	// if (CoreIrqSrc::Gpu::get(p)) {
-	// 	Genode::log("G");
-
-	// 	return true;
-	// }
-
-	// /* search for lowest set bit in pending masks */
-	// for (unsigned i = 0; i < NR_OF_IRQ; i++) {
-	// 	if (!_is_pending(i, p1, p2))
-	// 		continue;
-
-	// 	irq = Board::GPU_IRQ_BASE + i;
-
-	// 	/* handle SOF interrupts locally, filter from the user land */
-	// 	if (irq == Board::DWC_IRQ)
-	// 		if (_usb.handle_sof())
-	// 			return false;
-
-	// 	return true;
-	// }
+	if (CoreIrqSrc::Gpu::get(p)) {
+		return _bcm2836.take_request(irq);
+	}
 
 	return false;
 }
@@ -198,6 +181,8 @@ void Genode::Pic::mask()
 	// unmask ipi
 	for (unsigned cpu_id = 0; cpu_id < NR_OF_CPUS; cpu_id++)
 		unmask(IPI, cpu_id);
+
+	_bcm2836.mask();
 }
 
 
@@ -210,15 +195,10 @@ void Genode::Pic::unmask(unsigned const i, unsigned cpu_id)
 	} else if (i < 8) {
 		/* mbox interrupts */
 		write<CoreMboxCtl>(read<CoreMboxCtl>(cpu_id) | (1 << (i - 4)), cpu_id);
+	} else {
+
+		_bcm2836.unmask(i, cpu_id);
 	}
-
-
-	// if (i < 8)
-	// 	write<Irq_enable_basic>(1 << i);
-	// else if (i < 32 + 8)
-	// 	write<Irq_enable_gpu_1>(1 << (i - 8));
-	// else
-	// 	write<Irq_enable_gpu_2>(1 << (i - 8 - 32));
 }
 
 
@@ -231,13 +211,7 @@ void Genode::Pic::mask(unsigned const i)
 	} else if (i < 8) {
 		unsigned const cpu_id = Cpu::executing_id();
 		write<CoreMboxCtl>(read<CoreMboxCtl>(cpu_id) & ~(1 << (i - 4)), cpu_id);
+	} else {
+		_bcm2836.mask(i);
 	}
-	/*else
-		if (i < 8)
-		write<Irq_disable_basic>(1 << i);
-		else if (i < 32 + 8)
-		write<Irq_disable_gpu_1>(1 << (i - 8));
-		else
-		write<Irq_disable_gpu_2>(1 << (i - 8 - 32)); */
-
 }

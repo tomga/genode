@@ -102,10 +102,10 @@ class Genode::Pic_bcm2836 : Mmio
 		struct Irq_pending_gpu_2  : Register<0x08, 32> { };
 		struct Irq_enable_gpu_1   : Register<0x10, 32> { };
 		struct Irq_enable_gpu_2   : Register<0x14, 32> { };
-		struct Irq_enable_basic   : Register<0x18, 32> { };
+		/* struct Irq_enable_basic   : Register<0x18, 32> { }; */
 		struct Irq_disable_gpu_1  : Register<0x1c, 32> { };
 		struct Irq_disable_gpu_2  : Register<0x20, 32> { };
-		struct Irq_disable_basic  : Register<0x24, 32> { };
+		/* struct Irq_disable_basic  : Register<0x24, 32> { }; */
 
 		Usb_dwc_otg _usb { };
 
@@ -203,7 +203,7 @@ class Genode::Pic : Mmio
 			};
 
 
-		Usb_dwc_otg _usb { };
+		Pic_bcm2836 _bcm2836 { };
 
 		/**
 		 * Return true if specified interrupt is pending
