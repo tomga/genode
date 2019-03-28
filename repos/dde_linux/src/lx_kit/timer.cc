@@ -26,7 +26,6 @@
 
 #include <lx_kit/timer.h>
 
-
 namespace Lx_kit { class Timer; }
 
 class Lx_kit::Timer : public Lx::Timer
@@ -86,6 +85,8 @@ class Lx_kit::Timer : public Lx::Timer
 
 		unsigned long                               &_jiffies;
 		::Timer::Connection                          _timer_conn;
+		unsigned long                                _last_programmed = 0;
+		::Timer::Connection                          _timer_conn_modern;
 		Lx_kit::List<Context>                        _list;
 		Lx::Task                                     _timer_task;
 		Genode::Signal_handler<Lx_kit::Timer>        _dispatcher;
@@ -113,9 +114,14 @@ class Lx_kit::Timer : public Lx::Timer
 			if (!ctx)
 				return;
 
+			if (ctx->timeout == _last_programmed) {
+				return;
+			}
+
 			/* calculate relative microseconds for trigger */
 			Genode::uint64_t us = ctx->timeout > _jiffies ?
 			                      (Genode::uint64_t)jiffies_to_msecs(ctx->timeout - _jiffies) * 1000 : 0;
+			_last_programmed = ctx->timeout;
 			_timer_conn.trigger_once(us);
 		}
 
@@ -127,6 +133,11 @@ class Lx_kit::Timer : public Lx::Timer
 		 */
 		void _schedule_timer(Context *ctx, unsigned long expires)
 		{
+
+			if (ctx->pending && ctx->timeout == expires) {
+				return;
+			}
+
 			_list.remove(ctx);
 
 			ctx->timeout    = expires;
@@ -168,6 +179,7 @@ class Lx_kit::Timer : public Lx::Timer
 		:
 			_jiffies(jiffies),
 			_timer_conn(env),
+			_timer_conn_modern(env),
 			_timer_task(Timer::run_timer, reinterpret_cast<void*>(this),
 			            "timer", Lx::Task::PRIORITY_2, Lx::scheduler()),
 			_dispatcher(ep, *this, &Lx_kit::Timer::_handle),
@@ -181,14 +193,18 @@ class Lx_kit::Timer : public Lx::Timer
 
 		unsigned long jiffies() const { return _jiffies; }
 
+		void reset() { _last_programmed = 0; }
+
 		static void run_timer(void *p)
 		{
 			Timer &t = *reinterpret_cast<Timer*>(p);
 
 			while (1) {
 				Lx::scheduler().current()->block_and_schedule();
+				t.reset();
 
 				while (Lx_kit::Timer::Context *ctx = t.first()) {
+
 					if (ctx->timeout > t.jiffies()) {
 						break;
 					}
@@ -224,7 +240,6 @@ class Lx_kit::Timer : public Lx::Timer
 		int del(void *timer)
 		{
 			Context *ctx = _find_context(timer);
-
 			/**
 			 * If the timer expired it was already cleaned up after its
 			 * execution.
@@ -289,8 +304,13 @@ class Lx_kit::Timer : public Lx::Timer
 			 * Do not use lx_emul usecs_to_jiffies(unsigned int) because
 			 * of implicit truncation!
 			 */
-			_jiffies = _jiffies_func ? _jiffies_func() :
-				(Genode::uint64_t)_timer_conn.curr_time().trunc_to_plain_ms().value / JIFFIES_TICK_MS;
+			if (_jiffies_func) {
+				_jiffies = _jiffies_func();
+			} else {
+				//ssumpf _jiffies = _timer_conn_modern.elapsed_ms() / JIFFIES_TICK_MS;
+				//current
+				_jiffies = (Genode::uint64_t)_timer_conn_modern.curr_time().trunc_to_plain_ms().value / JIFFIES_TICK_MS;
+			}
 		}
 
 		void register_jiffies_func(Lx::jiffies_update_func func) {
