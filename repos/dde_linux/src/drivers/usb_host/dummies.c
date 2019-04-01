@@ -121,6 +121,7 @@ void spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags) { SKIP; }
 void spin_lock_irq(spinlock_t *lock) { SKIP; }
 void spin_unlock_irq(spinlock_t *lock) { SKIP; }
 void assert_spin_locked(spinlock_t *lock) { TRACE;}
+int spin_trylock_irqsave(spinlock_t *lock, unsigned long flags) { return 1; }
 
 
 /*******************
@@ -603,6 +604,17 @@ bool sg_miter_next(struct sg_mapping_iter *miter) { TRACE; return false; }
 void sg_miter_stop(struct sg_mapping_iter *miter) { TRACE; }
 
 
+/********************************
+ ** linux/dma-mapping-common.h **
+ ********************************/
+
+void dma_sync_single_for_cpu(struct device *dev, dma_addr_t addr, size_t size,
+                             enum dma_data_direction dir)
+{
+	TRACE;
+}
+
+
 /*************************
  ** linux/dma-mapping.h **
  *************************/
@@ -622,6 +634,11 @@ void dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
 
 int dma_mapping_error(struct device *dev, dma_addr_t dma_addr) { SKIP; return 0; }
 
+void dma_sync_single_for_device(struct device *dev, dma_addr_t addr,
+                                size_t size, enum dma_data_direction dir)
+{
+	TRACE;
+}
 
 /*********************
  ** linux/uaccess.h **
@@ -671,6 +688,9 @@ int    regulator_enable(struct regulator *r)  { TRACE; return 0; }
 int    regulator_disable(struct regulator *r) { TRACE; return 0; }
 void   regulator_put(struct regulator *r)     { TRACE; }
 struct regulator *regulator_get(struct device *dev, const char *id) { TRACE; return 0; }
+int    regulator_bulk_enable(int num_consumers, struct regulator_bulk_data *consumers) { TRACE; return 0; }
+int    regulator_bulk_disable(int num_consumers, struct regulator_bulk_data *consumers) { TRACE; return 0; }
+int    devm_regulator_bulk_get(struct device *dev, int num_consumers, struct regulator_bulk_data *consumers) { TRACE; return 0; }
 
 
 /*******************************************
@@ -844,6 +864,7 @@ bool device_property_read_bool(struct device *dev, const char *propname) { TRACE
 int  device_property_read_u8(struct device *dev, const char *propname, u8 *val) { TRACE; return 0; }
 
 int  device_property_read_u32(struct device *dev, const char *propname, u32 *val) { TRACE; return 0; }
+int  device_property_read_u32_array(struct device *dev, const char *propname, u32 *val, size_t s) { TRACE; return 0; }
 
 
 /******************************
@@ -1182,6 +1203,12 @@ int phy_calibrate(struct phy *phy)
 	return 0;
 }
 
+int phy_get_bus_width(struct phy *phy)
+{
+	TRACE_AND_STOP;
+	return 0;
+}
+
 int phy_set_mode(struct phy *phy, enum phy_mode mode)
 {
 	TRACE;
@@ -1197,6 +1224,7 @@ int platform_device_add_properties(struct platform_device *pdev, const struct pr
 struct regulator *__must_check devm_regulator_get(struct device *dev, const char *id) { TRACE; return NULL; }
 int disable_irq_nosync(unsigned int irq) { TRACE; return 0; }
 int enable_irq(unsigned int irq) { TRACE; return 0; }
+void disable_irq(unsigned int irq) { TRACE; }
 void flush_workqueue(struct workqueue_struct *wq) { TRACE; }
 int ida_simple_get(struct ida *ida, unsigned int start, unsigned int end,  gfp_t gfp_mask) { TRACE; return 0; }
 void ida_simple_remove(struct ida *ida, unsigned int id) { TRACE; }
@@ -1209,6 +1237,10 @@ int stmp_reset_block(void __iomem *addr) { TRACE; return 0; }
 int usb_gadget_vbus_connect(struct usb_gadget *gadget) { TRACE; return 0; }
 int usb_gadget_vbus_disconnect(struct usb_gadget *gadget) { TRACE; return 0; }
 void usb_remove_phy(struct usb_phy *phy) { TRACE; }
+
+int reset_control_assert(struct reset_control *rstc) { TRACE; return 0; }
+int reset_control_deassert(struct reset_control *rstc) { TRACE; return 0; }
+struct reset_control *devm_reset_control_get_optional(struct device *dev, const char *id) { static struct reset_control retval; TRACE; return &retval; }
 
 struct ci_hdrc;
 

@@ -37,6 +37,7 @@ void assert_spin_locked(spinlock_t *lock);
 void spin_lock_bh(spinlock_t *lock);
 void spin_unlock_bh(spinlock_t *lock);
 int spin_trylock(spinlock_t *lock);
+int spin_trylock_irqsave(spinlock_t *lock, unsigned long flags);
 
 void raw_spin_lock_init(raw_spinlock_t *);
 #define __RAW_SPIN_LOCK_UNLOCKED(raw_spinlock_t) {0}

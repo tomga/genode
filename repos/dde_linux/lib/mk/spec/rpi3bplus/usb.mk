@@ -1,6 +1,3 @@
-TARGET   = rpi_usb_drv
-REQUIRES = arm_v6
-
 SRC_C += \
 	usb/host/dwc_otg/dwc_otg/dwc_otg_adp.c \
 	usb/host/dwc_otg/dwc_otg/dwc_otg_attr.c \
@@ -12,7 +9,9 @@ SRC_C += \
 	usb/host/dwc_otg/dwc_otg/dwc_otg_hcd_ddma.c \
 	usb/host/dwc_otg/dwc_otg/dwc_otg_hcd_intr.c \
 	usb/host/dwc_otg/dwc_otg/dwc_otg_hcd_linux.c \
-	usb/host/dwc_otg/dwc_otg/dwc_otg_hcd_queue.c \
+	usb/host/dwc_otg/dwc_otg/dwc_otg_hcd_queue.c
+
+SRC_C += \
 	usb/host/dwc_otg/dwc_common_port/dwc_cc.c \
 	usb/host/dwc_otg/dwc_common_port/dwc_common_linux.c \
 	usb/host/dwc_otg/dwc_common_port/dwc_crypto.c \
@@ -23,7 +22,7 @@ SRC_C += \
 
 SRC_C += net/usb/usbnet.c net/usb/smsc95xx.c
 
-include $(REP_DIR)/src/drivers/usb/spec/arm_v6/target.inc
+include $(REP_DIR)/lib/mk/spec/arm_v7/usb.inc
 
 CC_OPT  += -DDWC_LINUX -DPLATFORM_INTERFACE
 
@@ -39,7 +38,9 @@ CC_OPT  += -DIRQF_TRIGGER_LOW=1
 
 INC_DIR += $(LX_CONTRIB_DIR)/drivers/usb/host/dwc_otg/dwc_common_port \
            $(LX_CONTRIB_DIR)/drivers/usb/host/dwc_otg/dwc_otg
+INC_DIR += $(LIB_DIR)/include
 SRC_CC  += platform.cc
+INC_DIR += $(call select_from_repositories,include/spec/rpi)
 
 vpath platform.cc $(LIB_DIR)/spec/rpi3bplus
 vpath %.c         $(LX_CONTRIB_DIR)/drivers/net/usb
@@ -48,3 +49,5 @@ vpath %.c         $(LX_CONTRIB_DIR)/drivers/net/usb
 CC_CXX_OPT += -std=gnu++11
 
 LIBS += rpi_usb
+
+CC_CXX_WARN_STRICT =

@@ -277,6 +277,8 @@ Driver::Driver(Genode::Env &env) : env(env)
 	main_task.construct(env.ep(), main_task_entry, reinterpret_cast<void*>(this),
 	                    "main", Lx::Task::PRIORITY_0, Lx::scheduler());
 
+	Genode::log("--- USB HID input driver ---end");
+
 	/* give all task a first kick before returning */
 	Lx::scheduler().schedule();
 }

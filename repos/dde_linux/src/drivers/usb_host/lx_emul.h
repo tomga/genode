@@ -58,6 +58,13 @@
 #define bin2bcd(x) ((((x) / 10) << 4) + (x) % 10)
 
 
+/*****************
+ ** linux/gcd.h **
+ *****************/
+
+unsigned long gcd(unsigned long a, unsigned long b);
+
+
 /***************
  ** asm/bug.h **
  ***************/
@@ -231,6 +238,9 @@ int   kstrtouint(const char *s, unsigned int base, unsigned int *res);
 long simple_strtoul(const char *cp, char **endp, unsigned int base);
 long simple_strtol(const char *,char **,unsigned int);
 
+#define __ALIGN_MASK(x, mask)	__ALIGN_KERNEL_MASK((x), (mask))
+#define PTR_ALIGN(p, a)     ((typeof(p))ALIGN((unsigned long)(p), (a)))
+
 int vsnprintf(char *buf, size_t size, const char *fmt, va_list args);
 int vsprintf(char *buf, const char *fmt, va_list args);
 int snprintf(char *buf, size_t size, const char *fmt, ...);
@@ -289,6 +299,8 @@ bool printk_ratelimit();
 #define printk_ratelimited(fmt, ...) printk(fmt, ##__VA_ARGS__)
 #define printk_once(fmt, ...) printk(fmt, ##__VA_ARGS__)
 
+#define pr_fmt(fmt) fmt
+static inline __printf(1, 2) int no_printk(const char *fmt, ...) { return 0; }
 
 /**********************************
  ** linux/bitops.h, asm/bitops.h **
@@ -406,6 +418,7 @@ int utf16s_to_utf8s(const wchar_t *pwcs, int len, enum utf16_endian endian, u8 *
  ******************/
 
 enum {
+	SLAB_CACHE_DMA        = 0x00004000UL,
 	ARCH_KMALLOC_MINALIGN = 128, 
 };
 
@@ -451,6 +464,11 @@ void *kmalloc_array(size_t n, size_t size, gfp_t flags);
 
 #include <lx_emul/time.h>
 
+static inline s64 ktime_to_ms(const ktime_t kt)
+{
+	return kt / NSEC_PER_MSEC;
+}
+
 
 /*******************
  ** linux/timer.h **
@@ -468,6 +486,7 @@ void *kmalloc_array(size_t n, size_t size, gfp_t flags);
 void msleep(unsigned int msecs);
 void udelay(unsigned long usecs);
 void mdelay(unsigned long usecs);
+void ndelay(unsigned long);
 void usleep_range(unsigned long min, unsigned long max);
 
 
@@ -723,9 +742,11 @@ bool is_acpi_device_node(struct fwnode_handle *fwnode);
 
 #if DEBUG_LINUX_PRINTK
 #define dev_dbg(dev, format, arg...)  lx_printf("dev_dbg: " format, ## arg)
+#define dev_vdbg(dev, format, arg...) lx_printf("dev_dbg: " format, ## arg)
 #define CONFIG_DYNAMIC_DEBUG 1
 #else
 #define dev_dbg( dev, format, arg...)
+#define dev_vdbg( dev, format, arg...)
 #endif
 
 #define dev_printk(level, dev, format, arg...) \
@@ -965,6 +986,25 @@ void  dma_free_coherent(struct device *, size_t, void *, dma_addr_t);
 
 
 /*************************
+ ** linux/dma-direction **
+ *************************/
+
+enum dma_data_direction
+{
+	DMA_BIDIRECTIONAL = 0,
+	DMA_TO_DEVICE     = 1,
+	DMA_FROM_DEVICE   = 2
+};
+
+
+/**************************************
+ ** asm-generic/dma-mapping-common.h **
+ **************************************/
+
+void dma_sync_single_for_cpu(struct device *dev, dma_addr_t addr, size_t size, enum dma_data_direction dir);
+
+
+/*************************
  ** linux/dma-mapping.h **
  *************************/
 
@@ -992,6 +1032,8 @@ static inline int dma_set_mask_and_coherent(struct device *dev, u64 mask)
 }
 
 void *dma_zalloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle, gfp_t flag);
+
+void dma_sync_single_for_device(struct device *dev, dma_addr_t addr, size_t size, enum dma_data_direction dir);
 
 
 /*********************
@@ -1323,18 +1365,6 @@ unsigned smp_processor_id(void);
 
 
 /*************************
- ** linux/dma-direction **
- *************************/
-
-enum dma_data_direction
-{
-	DMA_BIDIRECTIONAL = 0,
-	DMA_TO_DEVICE     = 1,
-	DMA_FROM_DEVICE   = 2
-};
-
-
-/*************************
  ** linux/dma-mapping.h **
  *************************/
 
@@ -1481,6 +1511,28 @@ struct usbdevfs_hub_portinfo
 #define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) & (BITS_PER_LONG - 1)))
 #define BITMAP_LAST_WORD_MASK(nbits) (~0UL >> (-(nbits) & (BITS_PER_LONG - 1)))
 
+extern void bitmap_set(unsigned long *map, unsigned int start, int len);
+extern void bitmap_zero(unsigned long *dst, unsigned int nbits);
+extern void bitmap_or(unsigned long *dst, const unsigned long *src1,
+		const unsigned long *src2, unsigned int nbits);
+void bitmap_clear(unsigned long *, unsigned int, unsigned int);
+
+unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
+                                             unsigned long size,
+                                             unsigned long start,
+                                             unsigned int nr,
+                                             unsigned long align_mask,
+                                             unsigned long align_offset);
+static inline unsigned long
+bitmap_find_next_zero_area(unsigned long *map,
+                           unsigned long size,
+                           unsigned long start,
+                           unsigned int nr,
+                           unsigned long align_mask)
+{
+	return bitmap_find_next_zero_area_off(map, size, start, nr, align_mask, 0);
+}
+
 
 /******************
  ** linux/phy.h  **
@@ -1515,6 +1567,8 @@ void phy_remove_lookup(struct phy *phy, const char *con_id, const char *dev_id);
 int phy_set_mode(struct phy *phy, enum phy_mode mode);
 int phy_calibrate(struct phy *phy);
 
+int phy_get_bus_width(struct phy *phy);
+
 
 /************************
  ** linux/usb/gadget.h **
@@ -1536,6 +1590,20 @@ struct usb_phy_generic_platform_data
 {
 	int  type;
 	int  gpio_reset;
+};
+
+
+/*************************************
+ ** linux/platform_data/s3c-hsotg.h **
+ *************************************/
+
+struct dwc2_hsotg_plat {
+	/* enum dwc2_hsotg_dmamode	dma; */
+	/* unsigned int		is_osc:1; */
+	int                     phy_type;
+
+	int (*phy_init)(struct platform_device *pdev, int type);
+	int (*phy_exit)(struct platform_device *pdev, int type);
 };
 
 
@@ -1624,6 +1692,7 @@ int device_property_read_string(struct device *dev, const char *propname, const 
 bool device_property_read_bool(struct device *dev, const char *propname);
 int  device_property_read_u8(struct device *dev, const char *propname, u8 *val);
 int  device_property_read_u32(struct device *dev, const char *propname, u32 *val);
+int  device_property_read_u32_array(struct device *, const char *, u32 *, size_t);
 
 
 /************************
@@ -1698,11 +1767,22 @@ unsigned long __phys_to_virt(phys_addr_t x);
  ** linux/regulator/consumer.h **
  ********************************/
 
+struct regulator_bulk_data {
+	const char *supply;
+	/* struct regulator *consumer; */
+
+	/* /\* private: Internal use *\/ */
+	/* int ret; */
+};
+
 struct regulator { };
 
 int    regulator_enable(struct regulator *);
 int    regulator_disable(struct regulator *);
 struct regulator *__must_check devm_regulator_get(struct device *dev, const char *id);
+int __must_check regulator_bulk_enable(int num_consumers, struct regulator_bulk_data *consumers);
+int regulator_bulk_disable(int num_consumers, struct regulator_bulk_data *consumers);
+int __must_check devm_regulator_bulk_get(struct device *dev, int num_consumers, struct regulator_bulk_data *consumers);
 
 
 /*************************
@@ -1720,6 +1800,17 @@ struct regmap;
 
 int regmap_write(struct regmap *map, unsigned int reg, unsigned int val);
 int regmap_read(struct regmap *map, unsigned int reg, unsigned int *val);
+
+
+/*******************
+ ** linux/reset.h **
+ *******************/
+
+struct reset_control { };
+
+int reset_control_assert(struct reset_control *rstc);
+int reset_control_deassert(struct reset_control *rstc);
+struct reset_control *devm_reset_control_get_optional(struct device *dev, const char *id);
 
 
 /************************
