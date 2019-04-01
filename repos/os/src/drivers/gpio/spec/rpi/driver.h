@@ -19,7 +19,7 @@
 
 /* Genode includes */
 #include <base/log.h>
-#include <drivers/defs/rpi.h>
+#include <drivers/defs/rpi3bplus.h>
 #include <gpio/driver.h>
 #include <irq_session/connection.h>
 
@@ -54,7 +54,7 @@ class Gpio::Rpi_driver : public Driver
 
 		Rpi_driver(Genode::Env &env)
 		:
-			_reg(env, Rpi::GPIO_CONTROLLER_BASE, 0, Rpi::GPIO_CONTROLLER_SIZE),
+			_reg(env, Rpi3bplus::GPIO_CONTROLLER_BASE, 0, Rpi3bplus::GPIO_CONTROLLER_SIZE),
 			_irq(env, IRQ),
 			_dispatcher(env.ep(), *this, &Rpi_driver::_handle),
 			_async(false)
