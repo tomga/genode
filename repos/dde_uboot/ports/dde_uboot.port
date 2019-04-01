@@ -1,0 +1,7 @@
+LICENSE := GPLv2
+VERSION := git
+DOWNLOADS := uboot.git
+
+URL(uboot) := git://git.denx.de/u-boot.git
+REV(uboot) := 0157013f4a4945bbdb70bb4d98d680e0845fd784
+DIR(uboot) := uboot/src
