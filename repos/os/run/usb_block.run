@@ -13,8 +13,8 @@ set build_components {
 	test/block/bench
 }
 
-proc gpio_drv { } { if {[have_spec rpi] && [have_spec hw]}  { return hw_gpio_drv }
-                    if {[have_spec rpi] && [have_spec foc]} { return foc_gpio_drv }
+proc gpio_drv { } { if {[expr [have_spec rpi] || [have_spec rpi3bplus] ] && [have_spec hw]}  { return hw_gpio_drv }
+                    if {[expr [have_spec rpi] || [have_spec rpi3bplus] ] && [have_spec foc]} { return foc_gpio_drv }
                     return gpio_drv }
 
 lappend_if [have_spec gpio] build_components drivers/gpio
