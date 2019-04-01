@@ -59,6 +59,12 @@ void msleep(unsigned int msecs)
 
 void mdelay(unsigned long msecs) { msleep(msecs); }
 
+void ndelay(unsigned long nsecs)
+{
+	__delay_timer(nsecs / 1000 + 1);
+	Lx::timer_update_jiffies();
+}
+
 
 #pragma pop_macro("max")
 #pragma pop_macro("min")

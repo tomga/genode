@@ -22,7 +22,7 @@ SRC_C += \
 
 SRC_C += net/usb/usbnet.c net/usb/smsc95xx.c
 
-include $(REP_DIR)/lib/mk/spec/arm_v6/usb.inc
+include $(REP_DIR)/lib/mk/spec/arm_v7/usb.inc
 
 CC_OPT  += -DDWC_LINUX -DPLATFORM_INTERFACE
 
@@ -38,7 +38,9 @@ CC_OPT  += -DIRQF_TRIGGER_LOW=1
 
 INC_DIR += $(LX_CONTRIB_DIR)/drivers/usb/host/dwc_otg/dwc_common_port \
            $(LX_CONTRIB_DIR)/drivers/usb/host/dwc_otg/dwc_otg
+INC_DIR += $(LIB_DIR)/include
 SRC_CC  += platform.cc
+INC_DIR += $(call select_from_repositories,include/spec/rpi)
 
 vpath platform.cc $(LIB_DIR)/spec/rpi3bplus
 vpath %.c         $(LX_CONTRIB_DIR)/drivers/net/usb

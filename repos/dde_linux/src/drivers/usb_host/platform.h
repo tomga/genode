@@ -45,6 +45,5 @@ struct Services
 void backend_alloc_init(Genode::Env &env, Genode::Ram_allocator &ram, Genode::Allocator &alloc);
 
 void platform_hcd_init(Genode::Env &env, Services *services);
-Genode::Irq_session_capability platform_irq_activate(int irq);
 
 #endif /* _PLATFORM_H_ */
