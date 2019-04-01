@@ -29,7 +29,7 @@ struct Main
 	{
 		duration_us += 1000 * 1000;
 		timer.trigger_once(duration_us);
-		log("");
+		log(duration_us / (1000 * 1000));
 	}
 
 	Main(Env &env) : timer(env), timer_handler(env.ep(), *this, &Main::handle_timer)
