@@ -8,6 +8,7 @@ proc buffer_size_kib {} {
 	if {[have_spec imx53] &&
 	    ![have_spec foc]}    { return [expr      1024] }
 	if {[have_spec rpi]}     { return [expr  4 * 1024] }
+	if {[have_spec rpi3bplus]} { return [expr  4 * 1024] }
 	if {[have_spec omap4]}   { return [expr  4 * 1024] }
 	if {[have_spec arndale]} { return [expr      1024] }
 	puts "\n Run script is not supported on this platform. \n";
