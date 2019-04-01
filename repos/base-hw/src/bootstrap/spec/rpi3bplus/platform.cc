@@ -33,6 +33,8 @@ Bootstrap::Platform::Board::Board()
                             MINIUART_MMIO_SIZE },
             Memory_region { SYSTEM_TIMER_MMIO_BASE,
                             SYSTEM_TIMER_MMIO_SIZE },
+            Memory_region { LOCAL_IRQ_CONTROLLER_BASE,
+                            LOCAL_IRQ_CONTROLLER_SIZE },
             Memory_region { IRQ_CONTROLLER_BASE,
                             IRQ_CONTROLLER_SIZE },
             Memory_region { USB_DWC_OTG_BASE,

@@ -26,7 +26,7 @@ namespace Genode
 	 * Programmable interrupt controller for core
 	 */
 	class Pic;
-
+	class Pic_bcm2836;
 	class Usb_dwc_otg;
 }
 
@@ -76,12 +76,68 @@ class Genode::Usb_dwc_otg : Mmio
 };
 
 
+class Genode::Pic_bcm2836 : Mmio
+{
+	public:
+
+		enum {
+			NR_OF_IRQ = 64,
+
+			/*
+			 * dummy IPI value on non-SMP platform,
+			 * only used in interrupt reservation within generic code
+			 */
+			IPI,
+		};
+
+	private:
+
+		/* struct Irq_pending_basic : Register<0x0, 32> */
+		/* { */
+		/* 	struct Timer : Bitfield<0, 1> { }; */
+		/* 	struct Gpu   : Bitfield<8, 2> { }; */
+		/* }; */
+
+		struct Irq_pending_gpu_1  : Register<0x04, 32> { };
+		struct Irq_pending_gpu_2  : Register<0x08, 32> { };
+		struct Irq_enable_gpu_1   : Register<0x10, 32> { };
+		struct Irq_enable_gpu_2   : Register<0x14, 32> { };
+		struct Irq_enable_basic   : Register<0x18, 32> { };
+		struct Irq_disable_gpu_1  : Register<0x1c, 32> { };
+		struct Irq_disable_gpu_2  : Register<0x20, 32> { };
+		struct Irq_disable_basic  : Register<0x24, 32> { };
+
+		Usb_dwc_otg _usb { };
+
+		/**
+		 * Return true if specified interrupt is pending
+		 */
+		static bool _is_pending(unsigned i, uint32_t p1, uint32_t p2)
+		{
+			return i < 32 ? (p1 & (1 << i)) : (p2 & (1 << (i - 32)));
+		}
+
+	public:
+
+		Pic_bcm2836();
+
+		/* void init_cpu_local() { } */
+		bool take_request(unsigned &irq);
+		/* void finish_request() { } */
+		void mask();
+		void unmask(unsigned const i, unsigned);
+		void mask(unsigned const i);
+
+		/* static constexpr bool fast_interrupts() { return false; } */
+};
+
+
 class Genode::Pic : Mmio
 {
 	public:
 
 		enum {
-			NR_OF_IRQ = 96,
+			NR_OF_IRQ = 64,
 
 			/*
 			 * Mailbox 0 used for IPI

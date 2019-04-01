@@ -68,8 +68,79 @@ bool Genode::Usb_dwc_otg::handle_sof()
 }
 
 
+
+Genode::Pic_bcm2836::Pic_bcm2836()
+: Mmio(Platform::mmio_to_virt(Board::IRQ_CONTROLLER_BASE)) { mask(); }
+
+
+bool Genode::Pic_bcm2836::take_request(unsigned &irq)
+{
+	/* read basic IRQ status mask */
+	uint32_t const p = read<Irq_pending_basic>();
+
+
+	/* read GPU IRQ status mask */
+	uint32_t const p1 = read<Irq_pending_gpu_1>(),
+	               p2 = read<Irq_pending_gpu_2>();
+
+	if (Irq_pending_basic::Timer::get(p)) {
+		irq = Irq_pending_basic::Timer::SHIFT;
+		return true;
+	}
+
+	/* search for lowest set bit in pending masks */
+	for (unsigned i = 0; i < NR_OF_IRQ; i++) {
+		if (!_is_pending(i, p1, p2))
+			continue;
+
+		irq = Board::GPU_IRQ_BASE + i;
+
+		/* handle SOF interrupts locally, filter from the user land */
+		if (irq == Board::DWC_IRQ)
+			if (_usb.handle_sof())
+				return false;
+
+		return true;
+	}
+
+	return false;
+}
+
+
+void Genode::Pic_bcm2836::mask()
+{
+	write<Irq_disable_basic>(~0);
+	write<Irq_disable_gpu_1>(~0);
+	write<Irq_disable_gpu_2>(~0);
+}
+
+
+void Genode::Pic_bcm2836::unmask(unsigned const i, unsigned)
+{
+	if (i < 8)
+		write<Irq_enable_basic>(1 << i);
+	else if (i < 32 + 8)
+		write<Irq_enable_gpu_1>(1 << (i - 8));
+	else
+		write<Irq_enable_gpu_2>(1 << (i - 8 - 32));
+}
+
+
+void Genode::Pic_bcm2836::mask(unsigned const i)
+{
+	if (i < 8)
+		write<Irq_disable_basic>(1 << i);
+	else if (i < 32 + 8)
+		write<Irq_disable_gpu_1>(1 << (i - 8));
+	else
+		write<Irq_disable_gpu_2>(1 << (i - 8 - 32));
+}
+
+
+
+
 Genode::Pic::Pic()
-	: Mmio(Platform::mmio_to_virt(Board::IRQ_CONTROLLER_BASE)) { mask(); }
+	: Mmio(Platform::mmio_to_virt(Board::LOCAL_IRQ_CONTROLLER_BASE)) { mask(); }
 
 
 bool Genode::Pic::take_request(unsigned &irq)
@@ -84,13 +155,33 @@ bool Genode::Pic::take_request(unsigned &irq)
 		return true;
 	}
 	if (CoreIrqSrc::MBox0::get(p)) {
-
 		// TODO - write only 1 bit later
 		write<CoreMboxClr>(1, cpu_id * NR_OF_CPUS + MBOX0_OFFSET);
 
 		irq = IPI; // IPI
 		return true;
 	}
+
+	// if (CoreIrqSrc::Gpu::get(p)) {
+	// 	Genode::log("G");
+
+	// 	return true;
+	// }
+
+	// /* search for lowest set bit in pending masks */
+	// for (unsigned i = 0; i < NR_OF_IRQ; i++) {
+	// 	if (!_is_pending(i, p1, p2))
+	// 		continue;
+
+	// 	irq = Board::GPU_IRQ_BASE + i;
+
+	// 	/* handle SOF interrupts locally, filter from the user land */
+	// 	if (irq == Board::DWC_IRQ)
+	// 		if (_usb.handle_sof())
+	// 			return false;
+
+	// 	return true;
+	// }
 
 	return false;
 }

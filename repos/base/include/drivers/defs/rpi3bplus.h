@@ -11,8 +11,8 @@
  * under the terms of the GNU Affero General Public License version 3.
  */
 
-#ifndef _INCLUDE__DRIVERS__DEFS__RPI_H_
-#define _INCLUDE__DRIVERS__DEFS__RPI_H_
+#ifndef _INCLUDE__DRIVERS__DEFS__RPI3BPLUS_H_
+#define _INCLUDE__DRIVERS__DEFS__RPI3BPLUS_H_
 
 /* Genode includes */
 #include <util/mmio.h>
@@ -43,8 +43,9 @@ namespace Rpi3bplus {
 		MINIUART_MMIO_SIZE = 0x1000,
 		MINIUART_CLOCK     = 250000000,
 
-		/* IRQ_CONTROLLER_BASE = 0x3F00b200, */
-		IRQ_CONTROLLER_BASE = 0x40000000,
+		LOCAL_IRQ_CONTROLLER_BASE = 0x40000000,
+		LOCAL_IRQ_CONTROLLER_SIZE = 0x100,
+		IRQ_CONTROLLER_BASE = 0x3F00b200,
 		IRQ_CONTROLLER_SIZE = 0x100,
 
                 // FROM EXYNOS FOR NOW
@@ -65,7 +66,7 @@ namespace Rpi3bplus {
 		USB_DWC_OTG_SIZE = 0x20000,
 
 		/* timer */
-		TIMER_IRQ = 0,
+		/* TIMER_IRQ = 0, -- seems to be unused */
 
 		/* USB host controller */
 		DWC_IRQ = 17,
@@ -89,4 +90,4 @@ namespace Rpi3bplus {
 	                              UNCACHED     = 3 };
 };
 
-#endif /* _INCLUDE__DRIVERS__DEFS__RPI_H_ */
+#endif /* _INCLUDE__DRIVERS__DEFS__RPI3BPLUS_H_ */
