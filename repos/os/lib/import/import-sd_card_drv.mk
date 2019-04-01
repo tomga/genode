@@ -10,6 +10,8 @@ else ifeq ($(filter-out $(SPECS),pbxa9),)
 SPEC = pbxa9
 else ifeq ($(filter-out $(SPECS),rpi),)
 SPEC = rpi
+else ifeq ($(filter-out $(SPECS),rpi3bplus),)
+SPEC = rpi3bplus
 endif
 
 INC_DIR += $(REP_DIR)/src/drivers/sd_card $(REP_DIR)/src/drivers/sd_card/spec/$(SPEC)
