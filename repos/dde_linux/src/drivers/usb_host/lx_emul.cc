@@ -530,6 +530,8 @@ void *dma_alloc_coherent(struct device *, size_t size, dma_addr_t *dma, gfp_t)
 	if (!addr)
 		return 0;
 
+	*dma = (dma_addr_t) ((u32) dma | (u32) 0xc0000000);
+
 	lx_log(DEBUG_DMA, "DMA pool alloc addr: %p size %zx align: %d, phys: %lx",
 	            addr, size, PAGE_SHIFT, *dma);
 	return addr;
@@ -557,6 +559,8 @@ dma_addr_t dma_map_single_attrs(struct device *dev, void *ptr,
 	if (phys == ~0UL)
 		Genode::error("translation virt->phys ", ptr, "->", Genode::Hex(phys), "failed, return ip ",
 		     __builtin_return_address(0));
+
+	phys = (dma_addr_t) ((u32) phys | (u32) 0xc0000000);
 
 	lx_log(DEBUG_DMA, "virt: %p phys: %lx", ptr, phys);
 	return phys;
