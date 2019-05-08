@@ -158,7 +158,7 @@ struct tvec_base boot_tvec_bases;
 
 extern "C" void module_dwc_otg_driver_init();
 extern "C" int  module_usbnet_init();
-extern "C" int  module_smsc95xx_driver_init();
+extern "C" int  module_lan78xx_driver_init();
 
 void platform_hcd_init(Env &env, Services *services)
 {
@@ -169,7 +169,7 @@ void platform_hcd_init(Env &env, Services *services)
 	/* register network */
 	if (services->nic) {
 		module_usbnet_init();
-		module_smsc95xx_driver_init();
+		module_lan78xx_driver_init();
 	}
 
 	/* disable fiq optimization */

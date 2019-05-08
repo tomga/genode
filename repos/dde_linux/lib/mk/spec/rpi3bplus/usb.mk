@@ -20,7 +20,7 @@ SRC_C += \
 	usb/host/dwc_otg/dwc_common_port/dwc_modpow.c \
 	usb/host/dwc_otg/dwc_common_port/dwc_notifier.c
 
-SRC_C += net/usb/usbnet.c net/usb/smsc95xx.c
+SRC_C += net/usb/usbnet.c net/usb/lan78xx.c
 
 include $(REP_DIR)/lib/mk/spec/arm_v7/usb.inc
 
@@ -40,7 +40,7 @@ INC_DIR += $(LX_CONTRIB_DIR)/drivers/usb/host/dwc_otg/dwc_common_port \
            $(LX_CONTRIB_DIR)/drivers/usb/host/dwc_otg/dwc_otg
 INC_DIR += $(LIB_DIR)/include
 SRC_CC  += platform.cc
-INC_DIR += $(call select_from_repositories,include/spec/rpi)
+INC_DIR += $(call select_from_repositories,include/spec/rpi3bplus)
 
 vpath platform.cc $(LIB_DIR)/spec/rpi3bplus
 vpath %.c         $(LX_CONTRIB_DIR)/drivers/net/usb
@@ -48,6 +48,6 @@ vpath %.c         $(LX_CONTRIB_DIR)/drivers/net/usb
 # enable C++11 support
 CC_CXX_OPT += -std=gnu++11
 
-LIBS += rpi_usb
+LIBS += rpi3bplus_usb
 
 CC_CXX_WARN_STRICT =

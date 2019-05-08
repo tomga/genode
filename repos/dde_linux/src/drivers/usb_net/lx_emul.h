@@ -34,6 +34,12 @@ enum { HZ = 100UL };
 #include <lx_emul/time.h>
 #include <lx_emul/bitops.h>
 
+unsigned int hweight32(unsigned int w);
+unsigned int hweight64(__u64 w);
+
+static inline unsigned long hweight_long(unsigned long w) {
+	return sizeof(w) == 4 ? hweight32(w) : hweight64(w); }
+
 typedef int clockid_t;
 
 #include <lx_emul/timer.h>
@@ -98,7 +104,7 @@ typedef struct { __u8 b[16]; } uuid_le;
 void * dev_get_drvdata(const struct device *dev);
 int    dev_set_drvdata(struct device *dev, void *data);
 
-#define netdev_dbg(dev, fmt, args...)
+#define netdev_dbg(dev, fmt, args...)   lx_printf("netdev_dbg:  " fmt, ##args)
 #define netdev_warn(dev, fmt, args...)  lx_printf("netdev_warn: " fmt, ##args)
 #define netdev_err(dev, fmt, args...)   lx_printf("netdev_err:  " fmt, ##args)
 #define netdev_info(dev, fmt, args...)  lx_printf("netdev_info: " fmt, ##args)
@@ -106,10 +112,10 @@ int    dev_set_drvdata(struct device *dev, void *data);
 #define dev_info(dev, format, arg...) lx_printf("dev_info: " format , ## arg)
 #define dev_warn(dev, format, arg...) lx_printf("dev_warn: " format , ## arg)
 #define dev_err( dev, format, arg...) lx_printf("dev_err: "  format , ## arg)
-#define dev_dbg( dev, format, arg...)
+#define dev_dbg( dev, format, arg...) lx_printf("dev_dbg: "  format , ## arg)
 
 #define netif_info(priv, type, dev, fmt, args...) lx_printf("netif_info: " fmt, ## args);
-#define netif_dbg(priv, type, dev, fmt, args...)
+#define netif_dbg(priv, type, dev, fmt, args...)  lx_printf("netif_dbg: "  fmt, ## args);
 #define netif_err(priv, type, dev, fmt, args...)  lx_printf("netif_err: "  fmt, ## args);
 
 #define pr_debug(fmt, ...)
@@ -120,10 +126,16 @@ int    dev_set_drvdata(struct device *dev, void *data);
 #define pr_notice(fmt, ...)     printk(KERN_NOTICE fmt, ##__VA_ARGS__)
 #define pr_emerg(fmt, ...)      printk(KERN_INFO fmt,   ##__VA_ARGS__)
 
+struct dev_pm_ops;
+struct kobj_event_env;
+
 struct bus_type
 {
+	const char* name;
+	int (*uevent)(struct device *dev, struct kobj_event_env *env);
 	int (*match)(struct device *dev, struct device_driver *drv);
 	int (*probe)(struct device *dev);
+	struct dev_pm_ops *pm;
 };
 
 struct device_driver
@@ -132,6 +144,8 @@ struct device_driver
 	struct bus_type *bus;
 	struct module   *owner;
 	const char      *mod_name;
+	int            (*probe)  (struct device *dev);
+	int            (*remove) (struct device *dev);
 };
 
 typedef int devt;
@@ -143,10 +157,15 @@ typedef int devt;
 struct class
 {
 	const char *name;
+	void (*dev_release)(struct device *dev);
 	char *(*devnode)(struct device *dev, mode_t *mode);
 };
 
-struct device_node;
+struct fwnode_handle {};
+
+struct device_node {
+	struct fwnode_handle fwnode;
+};
 
 struct device
 {
@@ -154,6 +173,7 @@ struct device
 	struct device            * parent;
 	struct kobject           * kobj;
 	struct device_driver     * driver;
+	void                     * platform_data;
 	struct bus_type          * bus;
 	dev_t                      devt;
 	struct class             * class;
@@ -161,6 +181,7 @@ struct device
 	void (*release)(struct device *dev);
 	void                     * driver_data;
 	struct device_node       * of_node;
+	const struct attribute_group **groups;
 };
 
 #define module_driver(__driver, __register, __unregister, ...) \
@@ -247,6 +268,10 @@ struct net_device_ops {
 	int (*ndo_do_ioctl)(struct net_device *dev, struct ifreq *ifr, int cmd);
 	int (*ndo_set_features)(struct net_device *dev, netdev_features_t features);
 	void (*ndo_get_stats64)(struct net_device *dev, struct rtnl_link_stats64 *storage);
+	int			(*ndo_vlan_rx_add_vid)(struct net_device *dev,
+						       __be16 proto, u16 vid);
+	int			(*ndo_vlan_rx_kill_vid)(struct net_device *dev,
+						        __be16 proto, u16 vid);
 };
 
 struct net_device_stats
@@ -530,6 +555,11 @@ void netif_carrier_on(struct net_device *dev);
 void netif_carrier_off(struct net_device *dev);
 
 const void *of_get_mac_address(struct device_node *np);
+bool of_property_read_bool(const struct device_node *np, const char *propname);
+int  of_property_read_u32(const struct device_node *np, const char *propname, u32 *out_value);
+
+int  driver_register(struct device_driver *drv);
+void driver_unregister(struct device_driver *drv);
 
 u16 bitrev16(u16 in);
 u16 crc16(u16 crc, const u8 *buffer, size_t len);
@@ -560,6 +590,7 @@ int netif_rx(struct sk_buff *);
 enum { NET_RX_SUCCESS = 0 };
 enum { SINGLE_DEPTH_NESTING = 1 };
 
+void tasklet_init(struct tasklet_struct *t, void (*)(unsigned long), unsigned long);
 void tasklet_schedule(struct tasklet_struct *t);
 void tasklet_kill(struct tasklet_struct *t);
 
@@ -601,6 +632,9 @@ void free_netdev(struct net_device *);
 void netif_trans_update(struct net_device *dev);
 
 void pm_runtime_enable(struct device *dev);
+void pm_runtime_set_autosuspend_delay(struct device *dev, int delay);
+
+void random_ether_addr(u8 *addr);
 
 struct net_device *alloc_etherdev(int);
 
@@ -810,6 +844,8 @@ bool net_gso_ok(netdev_features_t features, int gso_type);
 bool copy_from_iter_full_nocache(void *addr, size_t bytes, struct iov_iter *i);
 bool lockdep_is_held(void *l);
 
+#define DECLARE_WAIT_QUEUE_HEAD_ONSTACK(name) DECLARE_WAIT_QUEUE_HEAD(name)
+
 extern int debug_locks;
 bool wq_has_sleeper(struct wait_queue_head *wq_head);
 bool poll_does_not_wait(const poll_table *p);
@@ -918,6 +954,7 @@ void *kmap_atomic(struct page *page);
 void kunmap_atomic(void *addr);
 
 #define CONFIG_LOCKDEP 1
+#define CONFIG_PHYLIB 1
 
 struct partial_page
 {
@@ -1268,13 +1305,209 @@ struct device_node * pci_device_to_OF_node(const struct pci_dev *pdev);
 
 int dev_is_pci(struct device *dev);
 
+
+enum { NETDEV_ALIGN = 32 };
+
+void put_device(struct device *dev);
+
+typedef void (*dr_release_t)(struct device *dev, void *res);
+typedef int (*dr_match_t)(struct device *dev, void *res, void *match_data);
+
+void *devres_alloc(dr_release_t release, size_t size, gfp_t gfp);
+void  devres_add(struct device *dev, void *res);
+void  devres_free(void *res);
+int devres_release(struct device *dev, dr_release_t release, dr_match_t match, void *match_data);
+
+int dev_set_name(struct device *dev, const char *fmt, ...);
+
+int  device_register(struct device *dev);
+
+void device_del(struct device *dev);
+
+#define trace_mdio_access(p1, p2, p3, p4, p5, p6)
+
+bool in_interrupt(void);
+
+int of_driver_match_device(struct device *dev, const struct device_driver *drv);
+
+int of_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env);
+
+int  bus_register(struct bus_type *bus);
+int class_register(struct class *cls);
+void class_unregister(struct class *cls);
+
+
+
+/***********************
+ ** linux/irqreturn.h **
+ ***********************/
+
+#include <lx_emul/irq.h>
+
+
+
+#define SIOCGMIIPHY	0x8947		/* Get address of MII PHY in use. */
+#define SIOCGMIIREG	0x8948		/* Read MII PHY register.	*/
+#define SIOCSMIIREG	0x8949		/* Write MII PHY register.	*/
+
+#define SIOCSHWTSTAMP	0x89b0		/* set and get config		*/
+
+extern struct workqueue_struct *system_power_efficient_wq;
+
+int request_threaded_irq(unsigned int irq, irq_handler_t handler, irq_handler_t thread_fn, unsigned long flags, const char *name, void *dev);
+
+struct phy_led_trigger;
+void phy_led_trigger_change_speed(struct phy_device *phy);
+int phy_led_triggers_register(struct phy_device *phy);
+void phy_led_triggers_unregister(struct phy_device *phy);
+
+
+#define IRQF_SHARED		0x00000080
+#define IRQF_ONESHOT		0x00002000
+
+void free_irq(unsigned int, void *);
+
+
+void bus_unregister(struct bus_type *bus);
+int  device_add(struct device *dev);
+void device_initialize(struct device *dev);
+struct device *get_device(struct device *dev);
+struct device *bus_find_device_by_name(struct bus_type *bus, struct device *start, const char *name);
+int  device_bind_driver(struct device *dev);
+void device_release_driver(struct device *dev);
+
+int sysfs_create_link(struct kobject *kobj, struct kobject *target, const char *name);
+int sysfs_create_link_nowarn(struct kobject *kobj, struct kobject *target, const char *name);
+void sysfs_remove_link(struct kobject *kobj, const char *name);
+
+int sprintf(char *buf, const char *fmt, ...);
+
+struct attribute {
+	const char *name;
+	mode_t      mode;
+};
+
+struct device_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct device *dev, struct device_attribute *attr,
+	                char *buf);
+	ssize_t (*store)(struct device *dev, struct device_attribute *attr,
+	                 const char *buf, size_t count);
+};
+
+
+
+#define __ATTR(_name,_mode,_show,_store) { \
+	.attr  = {.name = #_name, .mode = _mode }, \
+	.show  = _show, \
+	.store = _store, \
+}
+
+#define __ATTR_NULL { .attr = { .name = NULL } }
+#define __ATTR_RO(name) __ATTR_NULL
+#define DEVICE_ATTR_RO(_name) \
+struct device_attribute dev_attr_##_name = __ATTR_RO(_name)
+
+struct attribute_group
+{
+	const char            *name;
+	struct attribute     **attrs;
+	struct bin_attribute **bin_attrs;
+};
+
+#define __ATTRIBUTE_GROUPS(_name)                                 \
+static const struct attribute_group *_name##_groups[] = {       \
+        &_name##_group,                                         \
+        NULL,                                                   \
+}
+
+#define ATTRIBUTE_GROUPS(_name)                                 \
+static const struct attribute_group _name##_group = {           \
+        .attrs = _name##_attrs,                                 \
+};                                                              \
+__ATTRIBUTE_GROUPS(_name)
+
+
+void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp);
+
+/******************
+ ** linux/kmod.h **
+ ******************/
+
+int request_module(const char *name, ...);
+
+
+/*********************
+ ** linux/stringify **
+ *********************/
+
+#define __stringify(x...) #x
+
+
+/***********************
+ ** linux/irqdomain.h **
+ ***********************/
+
+typedef unsigned long irq_hw_number_t;
+struct irq_domain {
+	void *host_data;
+};
+struct irq_domain_ops {
+	int (*map)(struct irq_domain *d, unsigned int virq, irq_hw_number_t hw);
+	void (*unmap)(struct irq_domain *d, unsigned int virq);
+};
+
+struct irq_domain *irq_domain_add_simple(struct device_node *of_node,
+					 unsigned int size,
+					 unsigned int first_irq,
+					 const struct irq_domain_ops *ops,
+					 void *host_data);
+void irq_domain_remove(struct irq_domain *host);
+unsigned int irq_create_mapping(struct irq_domain *host,
+                                irq_hw_number_t hwirq);
+void irq_dispose_mapping(unsigned int virq);
+
+
+/*****************
+ ** linux/irq.h **
+ *****************/
+
+#include <linux/irqhandler.h>
+
+struct irq_chip {
+	const char	*name;
+	void		(*irq_mask)(struct irq_data *data);
+	void		(*irq_unmask)(struct irq_data *data);
+	void		(*irq_bus_lock)(struct irq_data *data);
+	void		(*irq_bus_sync_unlock)(struct irq_data *data);
+ };
+void irq_set_chip_and_handler(unsigned int, struct irq_chip *,
+                              irq_flow_handler_t);
+int irq_set_chip_data(unsigned int irq, void *data);
+void irq_set_noprobe(unsigned int irq);
+void *irq_data_get_irq_chip_data(struct irq_data *d);
+irq_hw_number_t irqd_to_hwirq(struct irq_data *d);
+void handle_simple_irq(struct irq_desc *);
+
+
+/*********************
+ ** linux/irqdesc.h **
+ *********************/
+
+int generic_handle_irq(unsigned int);
+
+
 void skb_init();
+void subsys_phy_init();
+int module_phy_module_init();
 int module_usbnet_init();
+int module_lan78xx_driver_init();
 int module_smsc95xx_driver_init();
 int module_asix_driver_init();
 int module_ax88179_178a_driver_init();
 int module_cdc_driver_init();
 int module_rndis_driver_init();
+
 
 #include <uapi/linux/capability.h>
 #include <uapi/linux/libc-compat.h>

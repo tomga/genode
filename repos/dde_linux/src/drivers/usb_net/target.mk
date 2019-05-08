@@ -15,11 +15,14 @@ SRC_C += drivers/net/usb/asix_devices.c
 SRC_C += drivers/net/usb/ax88172a.c
 SRC_C += drivers/net/usb/ax88179_178a.c
 SRC_C += drivers/net/usb/cdc_ether.c
+SRC_C += drivers/net/usb/lan78xx.c
 SRC_C += drivers/net/usb/rndis_host.c
 SRC_C += drivers/net/usb/smsc95xx.c
 SRC_C += drivers/net/usb/usbnet.c
 SRC_C += net/core/skbuff.c
 SRC_C += net/ethernet/eth.c
+
+SRC_C += $(addprefix drivers/net/phy/,$(notdir $(wildcard $(USB_CONTRIB_DIR)/drivers/net/phy/*.c)))
 
 CC_C_OPT += -Wno-comment -Wno-int-conversion -Wno-incompatible-pointer-types \
             -Wno-unused-variable -Wno-pointer-sign -Wno-uninitialized \

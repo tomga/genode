@@ -1,0 +1,38 @@
+--- a/drivers/net/usb/lan78xx.c
++++ a/drivers/net/usb/lan78xx.c
+@@ -1668,12 +1668,6 @@
+ 					  "MAC address set to random addr");
+ 			}
+ 
+-			addr_lo = addr[0] | (addr[1] << 8) |
+-				  (addr[2] << 16) | (addr[3] << 24);
+-			addr_hi = addr[4] | (addr[5] << 8);
+-
+-			ret = lan78xx_write_reg(dev, RX_ADDRL, addr_lo);
+-			ret = lan78xx_write_reg(dev, RX_ADDRH, addr_hi);
+ 		} else {
+ 			/* generate random MAC */
+ 			random_ether_addr(addr);
+@@ -1682,6 +1676,13 @@
+ 		}
+ 	}
+ 
++	addr_lo = addr[0] | (addr[1] << 8) |
++		  (addr[2] << 16) | (addr[3] << 24);
++	addr_hi = addr[4] | (addr[5] << 8);
++
++	ret = lan78xx_write_reg(dev, RX_ADDRL, addr_lo);
++	ret = lan78xx_write_reg(dev, RX_ADDRH, addr_hi);
++
+ 	ret = lan78xx_write_reg(dev, MAF_LO(0), addr_lo);
+ 	ret = lan78xx_write_reg(dev, MAF_HI(0), addr_hi | MAF_HI_VALID_);
+ 
+@@ -1919,7 +1920,7 @@
+ 	u32 buf;
+ 	int ret = 0;
+ 
+-	of_node = dev->udev->dev.parent->of_node;
++	of_node = NULL; // dev->udev->dev.parent->of_node;
+ 
+ 	mutex_init(&dev->domain_data.irq_lock);
+ 

@@ -22,6 +22,8 @@ linux-x.x.x/drivers/net/usb/asix.h
 linux-x.x.x/drivers/net/usb/ax88172a.c
 linux-x.x.x/drivers/net/usb/ax88179_178a.c
 linux-x.x.x/drivers/net/usb/cdc_ether.c
+linux-x.x.x/drivers/net/usb/lan78xx.h
+linux-x.x.x/drivers/net/usb/lan78xx.c
 linux-x.x.x/drivers/net/usb/rndis_host.c
 linux-x.x.x/drivers/net/usb/smsc95xx.h
 linux-x.x.x/drivers/net/usb/smsc95xx.c

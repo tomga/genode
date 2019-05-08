@@ -32,6 +32,7 @@ struct workqueue_struct *tasklet_wq;
 void Driver::Device::scan_altsettings(usb_interface * iface,
                                       unsigned iface_idx, unsigned alt_idx)
 {
+	Genode::log("--- USB net driver scan_altsettings ---");
 	Usb::Interface_descriptor iface_desc;
 	usb.interface_descriptor(iface_idx, alt_idx, &iface_desc);
 	Genode::memcpy(&iface->altsetting[alt_idx].desc, &iface_desc,
@@ -54,11 +55,13 @@ void Driver::Device::scan_altsettings(usb_interface * iface,
 		else
 			udev->ep_in[epnum]  = &iface->altsetting[alt_idx].endpoint[i];
 	}
+	Genode::log("--- USB net driver scan_altsettings quit ---");
 }
 
 
 void Driver::Device::scan_interfaces(unsigned iface_idx)
 {
+	Genode::log("--- USB net driver scan_interfaces ---");
 	struct usb_interface * iface =
 		(usb_interface*) kzalloc(sizeof(usb_interface), GFP_KERNEL);
 	iface->num_altsetting = usb.alt_settings(iface_idx);
@@ -70,16 +73,21 @@ void Driver::Device::scan_interfaces(unsigned iface_idx)
 	for (unsigned i = 0; i < iface->num_altsetting; i++)
 		scan_altsettings(iface, iface_idx, i);
 
+	Genode::log("--- USB net driver scan_interfaces 1 ---");
 	struct usb_device_id id;
 	probe_interface(iface, &id);
+	Genode::log("--- USB net driver scan_interfaces 2 ---");
 	udev->config->interface[iface_idx] = iface;
+	Genode::log("--- USB net driver scan_interfaces 3 ---");
 
 	driver.env.parent().announce(driver.ep.manage(driver.root));
+	Genode::log("--- USB net driver scan_interfaces quit ---");
 };
 
 
 void Driver::Device::register_device()
 {
+	Genode::log("--- USB net driver register_device ---");
 	if (udev) {
 		Genode::error("device already registered!");
 		return;
@@ -101,11 +109,13 @@ void Driver::Device::register_device()
 
 	for (unsigned i = 0; i < config_desc.num_interfaces; i++)
 		scan_interfaces(i);
+	Genode::log("--- USB net driver register_device quit ---");
 }
 
 
 void Driver::Device::unregister_device()
 {
+	Genode::log("--- USB net driver unregister_device ---");
 	for (unsigned i = 0; i < USB_MAXINTERFACES; i++) {
 		if (!udev->config->interface[i]) break;
 		else remove_interface(udev->config->interface[i]);
@@ -114,11 +124,13 @@ void Driver::Device::unregister_device()
 	kfree(udev->config);
 	kfree(udev);
 	udev = nullptr;
+	Genode::log("--- USB net driver unregister_device quit ---");
 }
 
 
 void Driver::Device::state_task_entry(void * arg)
 {
+	Genode::log("--- USB net driver state_task_entry ---");
 	Device & dev = *reinterpret_cast<Device*>(arg);
 
 	for (;;) {
@@ -130,11 +142,13 @@ void Driver::Device::state_task_entry(void * arg)
 
 		Lx::scheduler().current()->block_and_schedule();
 	}
+	Genode::log("--- USB net driver state_task_entry quit ---");
 }
 
 
 void Driver::Device::urb_task_entry(void * arg)
 {
+	Genode::log("--- USB net driver urb_task_entry ---");
 	Device & dev = *reinterpret_cast<Device*>(arg);
 
 	for (;;) {
@@ -146,6 +160,7 @@ void Driver::Device::urb_task_entry(void * arg)
 
 		Lx::scheduler().current()->block_and_schedule();
 	}
+	Genode::log("--- USB net driver urb_task_entry quit ---");
 }
 
 
@@ -159,26 +174,34 @@ Driver::Device::Device(Driver & driver, Label label)
   urb_task(env.ep(), urb_task_entry, reinterpret_cast<void*>(this),
              "usb_urb", Lx::Task::PRIORITY_0, Lx::scheduler())
 {
+	Genode::log("--- USB net driver Device ---");
 	usb.tx_channel()->sigh_ack_avail(urb_task.handler);
 	driver.devices.insert(&le);
+	Genode::log("--- USB net driver Device quit ---");
 }
 
 
 Driver::Device::~Device()
 {
+	Genode::log("--- USB net driver ~Device ---");
 	driver.devices.remove(&le);
 	if (udev) unregister_device();
+	Genode::log("--- USB net driver ~Device quit ---");
 }
 
 
 void Driver::main_task_entry(void * arg)
 {
+	Genode::log("--- USB net driver main_task_entry ---");
 	Driver * driver = reinterpret_cast<Driver*>(arg);
 
 	tasklet_wq = alloc_workqueue("tasklet_wq", 0, 0);
 
 	skb_init();
+	subsys_phy_init();
+	module_phy_module_init();
 	module_usbnet_init();
+	module_lan78xx_driver_init();
 	module_smsc95xx_driver_init();
 	module_asix_driver_init();
 	module_ax88179_178a_driver_init();
@@ -187,7 +210,9 @@ void Driver::main_task_entry(void * arg)
 
 	static Device dev(*driver, Label(""));
 
+	Genode::log("--- USB net driver main_task_entry block ---");
 	for (;;) Lx::scheduler().current()->block_and_schedule();
+	Genode::log("--- USB net driver main_task_entry quit ---");
 }
 
 
@@ -211,6 +236,7 @@ Driver::Driver(Genode::Env &env) : env(env)
 
 void Component::construct(Genode::Env &env)
 {
+	Genode::log("--- USB net driver construct ---");
 	env.exec_static_constructors();
 	static Driver driver(env);
 }
