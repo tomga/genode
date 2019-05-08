@@ -17,6 +17,9 @@ set build_components {
 	drivers/usb_net
 	test/lwip/http_srv
 	lib/vfs/lwip
+	server/nic_dump
+	server/nic_router
+	app/ping
 }
 
 lappend_if [have_spec gpio] build_components drivers/gpio
@@ -26,8 +29,8 @@ append_platform_drv_build_components
 
 build $build_components
 
-proc gpio_drv { } { if {[have_spec rpi] && [have_spec hw]}  { return hw_gpio_drv }
-                    if {[have_spec rpi] && [have_spec foc]} { return foc_gpio_drv }
+proc gpio_drv { } { if {[expr [have_spec rpi] || [have_spec rpi3bplus] ] && [have_spec hw]}  { return hw_gpio_drv }
+                    if {[expr [have_spec rpi] || [have_spec rpi3bplus] ] && [have_spec foc]} { return foc_gpio_drv }
                     return gpio_drv }
 
 create_boot_directory
@@ -78,6 +81,8 @@ append_if [have_spec arndale] config {
 			<policy label_prefix="usb_net_drv" vendor_id="0x0b95" product_id="0x772a"/> }
 append_if [expr [have_spec panda] || [have_spec rpi] ] config {
 			<policy label_prefix="usb_net_drv" vendor_id="0x0424" product_id="0xec00"/> }
+append_if [have_spec rpi3bplus] config {
+			<policy label_prefix="usb_net_drv" vendor_id="0x0424" product_id="0x7800"/> }
 append_if [have_spec x86] config {
 			<policy label_prefix="usb_net_drv" vendor_id="0x0b95" product_id="0x1790"/> }
 append config {
@@ -91,18 +96,59 @@ append config {
 	<start name="usb_net_drv">
 		<resource name="RAM" quantum="10M"/>
 		<provides> <service name="Nic"/> </provides>
-		<config mac="02:00:00:00:01:01" />
+		<config mac="b8:27:eb:3c:0e:d3" />
 	</start>
+
+	<start name="nic_dump">
+		<resource name="RAM" quantum="6M"/>
+		<provides><service name="Nic"/></provides>
+		<config uplink="usb_net_drv"
+		        downlink="app"
+		        time="yes"
+		        default="all"
+		        eth="all"
+		        arp="all"
+		        ipv4="all"
+		        dhcp="all"
+		        udp="no"
+		        icmp="all"
+		        tcp="default" />
+		<route>
+			<service name="Nic"> <child name="usb_net_drv"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+<!--
+	<start name="ping">
+		<binary name="ping"/>
+		<resource name="RAM" quantum="8M"/>
+		<config interface="192.168.177.50/24"
+		        gateway="192.168.177.1"
+		        dst_ip="192.168.177.99"
+		        period_sec="15"
+		        verbose="no"/>
+		<route>
+			<service name="Nic"> <child name="nic_dump"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+-->
 
 	<start name="test-lwip_httpsrv" caps="120">
 		<resource name="RAM" quantum="4M"/>
 		<config>
 			<vfs>
 				<dir name="dev">    <log/>             </dir>
-				<dir name="socket"> <lwip dhcp="yes"/> </dir>
+				<dir name="socket"> <lwip ip_addr="192.168.177.50" netmask="255.255.255.0" gateway="192.168.177.1"/> </dir>
+				<!--dir name="socket"> <lwip dhcp="yes"/> </dir-->
 			</vfs>
 			<libc stdout="/dev/log" stderr="/dev/log" socket="/socket"/>
 		</config>
+		<route>
+			<service name="Nic"> <child name="nic_dump"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
 	</start>
 </config>
 }
@@ -115,7 +161,7 @@ install_config $config
 
 # generic modules
 set boot_modules {
-	core init timer usb_net_drv
+	core init timer usb_net_drv nic_dump nic_router ping
 	ld.lib.so libc.lib.so vfs.lib.so vfs_lwip.lib.so test-lwip_httpsrv
 }
 

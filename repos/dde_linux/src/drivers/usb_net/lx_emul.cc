@@ -9,6 +9,7 @@
 
 #include <lx_emul/extern_c_begin.h>
 #include <linux/usb.h>
+#include <linux/phy.h>
 #include <lx_emul/extern_c_end.h>
 
 #define TRACE do { ; } while (0)
@@ -30,6 +31,14 @@
 #include <lx_emul/extern_c_begin.h>
 
 #include <linux/mii.h>
+
+unsigned int hweight32(unsigned int w)
+{
+	w -= (w >> 1) & 0x55555555;
+	w =  (w & 0x33333333) + ((w >> 2) & 0x33333333);
+	w =  (w + (w >> 4)) & 0x0f0f0f0f;
+	return (w * 0x01010101) >> 24;
+}
 
 static int usb_match_device(struct usb_device *dev,
                             const struct usb_device_id *id)
@@ -179,8 +188,14 @@ struct Lx_driver
 
 	int probe(usb_interface * iface, usb_device_id * id)
 	{
+		Genode::log("--- USB probe 1 ---");
 		iface->dev.driver = &drv.drvwrap.driver;
-		if (drv.probe) return drv.probe(iface, id);
+		Genode::log("--- USB probe 2 ---");
+		if (drv.probe) {
+				Genode::log("--- USB probe 3 ---");
+				return drv.probe(iface, id);
+		}
+		Genode::log("--- USB probe 4 ---");
 		return 0;
 	}
 
@@ -210,11 +225,19 @@ int usb_register_driver(struct usb_driver * driver, struct module *, const char 
 
 void Driver::Device::probe_interface(usb_interface * iface, usb_device_id * id)
 {
+	Genode::log("--- USB probe_interface 1 ---");
 	using Le = Genode::List_element<Lx_driver>;
 	for (Le *le = Lx_driver::list().first(); le; le = le->next()) {
+		Genode::log("--- USB probe_interface 2 ---");
 		usb_device_id * id = le->object()->match(iface);
-		if (id && le->object()->probe(iface, id)) return;
+		Genode::log("--- USB probe_interface 3 ---", (void*) id);
+		if (id && le->object()->probe(iface, id)) {
+			Genode::log("--- USB probe_interface 4 ---");
+			return;
+		}
+		Genode::log("--- USB probe_interface 5 ---");
 	}
+	Genode::log("--- USB probe_interface 6 ---");
 }
 
 
@@ -287,7 +310,7 @@ static void snprint_mac(u8 *buf, u8 *mac)
 }
 
 
-static void random_ether_addr(u8 *addr)
+void random_ether_addr(u8 *addr)
 {
 	using namespace Genode;
 
@@ -313,7 +336,7 @@ static void random_ether_addr(u8 *addr)
 	/* use configured mac*/
 	Genode::memcpy(addr, mac.addr, ETH_ALEN);
 	snprint_mac(str, (u8 *)mac.addr);
-	Genode::log("Using configured mac: ", str);
+	Genode::log("Using configured mac: ", (const char*) str);
 }
 
 
@@ -537,3 +560,9 @@ void page_frag_free(void *addr)
 	Lx::Malloc::dma().free_large(page->addr);
 	kfree(page);
 }
+
+void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
+{
+	return kzalloc(size, gfp);
+}
+

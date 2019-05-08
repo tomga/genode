@@ -20,7 +20,7 @@
 #       tun/tap proxy driver at os/src/drivers/nic/linux)
 #
 
-set use_usb_driver [expr [have_spec omap4] || [have_spec arndale] || [have_spec rpi]]
+set use_usb_driver [expr [have_spec omap4] || [have_spec arndale] || [have_spec rpi] || [have_spec rpi3bplus]]
 set use_nic_driver [expr !$use_usb_driver && ![have_spec odroid_xu] && ![have_spec linux]]
 
 if {[expr !$use_usb_driver && !$use_nic_driver] ||
@@ -43,8 +43,8 @@ set build_components {
 lappend_if $use_usb_driver              build_components drivers/usb
 lappend_if [have_spec gpio]             build_components drivers/gpio
 
-proc gpio_drv { } { if {[have_spec rpi] && [have_spec hw]}  { return hw_gpio_drv }
-                    if {[have_spec rpi] && [have_spec foc]} { return foc_gpio_drv }
+proc gpio_drv { } { if {[expr [have_spec rpi] || [have_spec rpi3bplus] ] && [have_spec hw]}  { return hw_gpio_drv }
+                    if {[expr [have_spec rpi] || [have_spec rpi3bplus] ] && [have_spec foc]} { return foc_gpio_drv }
                     return gpio_drv }
 
 source ${genode_dir}/repos/base/run/platform_drv.inc

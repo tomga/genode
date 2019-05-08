@@ -198,6 +198,7 @@ PATCH_OPT(patches/usb_hid_evdev.patch)     := $(USB_HID_OPT)
 # USB NET
 USB_NET_OPT = -p1 -d$(SRC_DIR_USB_NET)
 PATCH_OPT(patches/usb_net_skbuff_cast.patch) := $(USB_NET_OPT)
+PATCH_OPT(patches/usb_net_lan78xx.patch) := $(USB_NET_OPT)
 
 # INTEL FB
 PATCH_OPT(patches/intel_fb_backlight.patch) := -p1 -d$(SRC_DIR_INTEL_FB)

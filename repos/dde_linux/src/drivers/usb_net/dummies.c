@@ -1,5 +1,7 @@
 #include <lx_emul.h>
 
+#include <linux/phy.h>
+
 #if 0
 #define TRACE \
 	do { \
@@ -14,6 +16,12 @@
 		lx_printf("%s not implemented\n", __func__); \
 		BUG(); \
 	} while (0)
+
+#if SKIP_VERBOSE
+#define SKIP lx_printf("\033[34m%s\033[0m: skipped\n", __PRETTY_FUNCTION__)
+#else
+#define SKIP
+#endif
 
 struct page *alloc_pages(gfp_t gfp_mask, unsigned int order)
 {
@@ -61,7 +69,7 @@ void * dev_get_drvdata(const struct device *dev)
 
 int device_set_wakeup_enable(struct device *dev, bool enable)
 {
-	TRACE_AND_STOP;
+	TRACE;
 	return -1;
 }
 
@@ -295,6 +303,8 @@ void sock_efree(struct sk_buff *skb)
 	TRACE_AND_STOP;
 }
 
+void spin_lock(spinlock_t *lock) { SKIP; }
+
 void spin_lock_irq(spinlock_t *lock)
 {
 	TRACE_AND_STOP;
@@ -314,6 +324,12 @@ size_t strlcpy(char *dest, const char *src, size_t size)
 {
 	TRACE_AND_STOP;
 	return -1;
+}
+
+void tasklet_init(struct tasklet_struct *t, void (*f)(unsigned long), unsigned long d)
+{
+	t->func    = f;
+	t->data    = d;
 }
 
 void tasklet_kill(struct tasklet_struct *t)
@@ -447,72 +463,306 @@ void usleep_range(unsigned long min, unsigned long max)
 	TRACE;
 }
 
-void phy_stop(struct phy_device *phydev)
+int sysctl_tstamp_allow_data;
+struct user_namespace init_user_ns;
+
+
+char  *strncpy(char *dst, const char *src, size_t s) { TRACE; return NULL; }
+
+void ethtool_convert_legacy_u32_to_link_mode(unsigned long *dst, u32 legacy_u32) { TRACE; }
+bool ethtool_convert_link_mode_to_legacy_u32(u32 *legacy_u32, const unsigned long *src) { TRACE; return true; }
+int generic_handle_irq(unsigned int irqnum) { TRACE_AND_STOP; return -1; }
+
+int phy_read_mmd(struct phy_device *phydev, int devad, u32 regnum) { TRACE_AND_STOP; return -1; }
+int phy_write_mmd(struct phy_device *phydev, int devad, u32 regnum, u16 val) { TRACE_AND_STOP; return -1; }
+
+int irq_set_chip_data(unsigned int irq, void *data) { TRACE_AND_STOP; return -1; }
+void irq_set_chip_and_handler_name(unsigned int irq, struct irq_chip *chip, irq_flow_handler_t handle, const char *name) { TRACE; }
+void irq_set_chip_and_handler(unsigned int irq, struct irq_chip *chip, irq_flow_handler_t handle) { TRACE; }
+void irq_set_noprobe(unsigned int irq) { TRACE; }
+void *irq_data_get_irq_chip_data(struct irq_data *d) { TRACE_AND_STOP; return NULL; }
+unsigned int irq_create_mapping(struct irq_domain *domain, irq_hw_number_t hwirq) { TRACE; return 0xdeadbeef; }
+void irq_dispose_mapping(unsigned int virq) { TRACE; }
+void irq_domain_remove_irq(int virq) { TRACE; }
+struct irq_domain *irq_domain_add_simple(struct device_node *of_node, unsigned int size, unsigned int first_irq, const struct irq_domain_ops *ops, void *host_data) { TRACE; return 0xdeadbeef; }
+void irq_domain_remove(struct irq_domain *domain) { TRACE; }
+
+void handle_simple_irq(struct irq_desc *desc) { TRACE; }
+
+void pm_runtime_set_autosuspend_delay(struct device *dev, int delay) { TRACE; }
+
+struct usb_device *usb_get_dev(struct usb_device *dev) { TRACE; return dev; }
+void usb_put_dev(struct usb_device *dev) { TRACE; }
+
+bool in_interrupt(void) { TRACE; return 0; }
+
+int genphy_c45_restart_aneg(struct phy_device *phydev)
 {
-	TRACE;
+	TRACE_AND_STOP;
+	return -1;
 }
 
-void phy_disconnect(struct phy_device *phydev)
-{
-	TRACE;
-}
-
-void phy_print_status(struct phy_device *phydev)
-{
-	TRACE;
-}
-
-int phy_mii_ioctl(struct phy_device *phydev, struct ifreq *ifr, int cmd)
-{
-	TRACE;
-	return 0;
-}
-
-typedef int phy_interface_t;
-struct phy_device * phy_connect(struct net_device *dev, const char *bus_id, void (*handler)(struct net_device *), phy_interface_t interface)
-{
-	TRACE;
-	return 0;
-}
-
-int  genphy_resume(struct phy_device *phydev) { TRACE; return 0; }
-
-void phy_start(struct phy_device *phydev) { TRACE; }
-
-struct mii_bus;
-void mdiobus_free(struct mii_bus *bus) { TRACE; }
-
-void mdiobus_unregister(struct mii_bus *bus) { TRACE; }
-
-struct mii_bus *mdiobus_alloc_size(size_t size)
+struct pci_dev *pci_get_device(unsigned int vendor, unsigned int device, struct pci_dev *from)
 {
 	TRACE_AND_STOP;
 	return NULL;
 }
 
-int __mdiobus_register(struct mii_bus *bus, struct module *owner)
+char *kobject_name(const struct kobject *kobj)
+{
+	TRACE_AND_STOP;
+	return NULL;
+}
+
+struct mdio_board_info;
+struct mii_bus;
+void mdiobus_setup_mdiodev_from_board_info(struct mii_bus *bus, int (*cb) (struct mii_bus *bus, struct mdio_board_info *bi))
+{
+	TRACE;
+}
+
+int mdio_device_bus_match(struct device *dev, struct device_driver *drv)
 {
 	TRACE_AND_STOP;
 	return -1;
 }
 
-int phy_ethtool_get_link_ksettings(struct net_device *ndev, struct ethtool_link_ksettings *cmd)
+struct mdio_device *mdio_device_create(struct mii_bus *bus, int addr)
+{
+	TRACE_AND_STOP;
+	return NULL;
+}
+
+int mdio_device_register(struct mdio_device *mdiodev)
 {
 	TRACE_AND_STOP;
 	return -1;
 }
 
-int phy_ethtool_set_link_ksettings(struct net_device *ndev, const struct ethtool_link_ksettings *cmd)
+void mdio_device_reset(struct mdio_device *mdiodev, int value)
+{
+	TRACE;
+}
+
+const char *phy_duplex_to_str(unsigned int duplex)
+{
+	TRACE_AND_STOP;
+	return NULL;
+}
+
+int __phy_modify(struct phy_device *phydev, u32 regnum, u16 mask, u16 set)
+{
+	TRACE;
+	return 0;
+}
+
+int phy_modify(struct phy_device *phydev, u32 regnum, u16 mask, u16 set)
+{
+	TRACE;
+	return 0;
+}
+
+const char *phy_speed_to_str(int speed)
+{
+	TRACE_AND_STOP;
+	return NULL;
+}
+
+int    strcmp(const char *s1, const char *s2)
 {
 	TRACE_AND_STOP;
 	return -1;
 }
 
-int phy_ethtool_nway_reset(struct net_device *ndev)
+struct module;
+int try_module_get(struct module * mod)
+{
+	TRACE;
+	return -1;
+}
+
+struct device *bus_find_device_by_name(struct bus_type *bus, struct device *start, const char *name)
+{
+	TRACE_AND_STOP;
+	return NULL;
+}
+
+int  device_add(struct device *dev)
+{
+	TRACE;
+	return 0;
+}
+
+int  device_bind_driver(struct device *dev)
+{
+	TRACE;
+	return 0;
+}
+
+void device_del(struct device *dev)
+{
+	TRACE_AND_STOP;
+}
+
+void device_initialize(struct device *dev)
+{
+	TRACE;
+}
+
+int  device_register(struct device *dev)
+{
+	TRACE;
+	return 0;
+}
+
+void device_release_driver(struct device *dev)
+{
+	TRACE_AND_STOP;
+}
+
+const char *dev_name(const struct device *dev)
+{
+	TRACE_AND_STOP;
+	return NULL;
+}
+
+int dev_set_name(struct device *dev, const char *fmt, ...)
+{
+	TRACE;
+	return 0;
+}
+
+void free_irq(unsigned int irq, void *dev_id)
+{
+	TRACE_AND_STOP;
+}
+
+struct device *get_device(struct device *dev)
+{
+	TRACE;
+	return NULL;
+}
+
+irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
 {
 	TRACE_AND_STOP;
 	return -1;
 }
 
-int sysctl_tstamp_allow_data;
-struct user_namespace init_user_ns;
+int of_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
+{
+	TRACE_AND_STOP;
+	return -1;
+}
+
+int of_driver_match_device(struct device *dev, const struct device_driver *drv)
+{
+	TRACE_AND_STOP;
+	return -1;
+}
+
+void phy_led_trigger_change_speed(struct phy_device *phy)
+{
+	TRACE;
+}
+
+int phy_led_triggers_register(struct phy_device *phy)
+{
+	TRACE;
+	return 0;
+}
+
+void phy_led_triggers_unregister(struct phy_device *phy)
+{
+	TRACE_AND_STOP;
+}
+
+void put_device(struct device *dev)
+{
+	TRACE_AND_STOP;
+}
+
+int request_module(const char *name, ...)
+{
+	TRACE;
+	return 0;
+}
+
+int request_threaded_irq(unsigned int irq, irq_handler_t handler, irq_handler_t thread_fn, unsigned long flags, const char *name, void *dev)
+{
+	TRACE_AND_STOP;
+	return -1;
+}
+
+int sysfs_create_link(struct kobject *kobj, struct kobject *target, const char *name)
+{
+	TRACE;
+	return 0;
+}
+
+int sysfs_create_link_nowarn(struct kobject *kobj, struct kobject *target, const char *name)
+{
+	TRACE;
+	return 0;
+}
+
+void sysfs_remove_link(struct kobject *kobj, const char *name)
+{
+	TRACE_AND_STOP;
+}
+
+
+struct workqueue_struct *system_power_efficient_wq;
+
+struct phy_driver genphy_10g_driver;
+
+void mdio_device_free(struct mdio_device *mdiodev)
+{
+	TRACE_AND_STOP;
+}
+
+void module_put(struct module *mod)
+{
+	TRACE_AND_STOP;
+}
+
+const struct phy_setting *
+phy_lookup_setting(int speed, int duplex, const unsigned long *mask, size_t maxbit, bool exact)
+{
+	TRACE_AND_STOP;
+	return NULL;
+}
+
+int driver_register(struct device_driver *drv)
+{
+	TRACE;
+	return 0;
+}
+
+void driver_unregister(struct device_driver *drv)
+{
+	TRACE_AND_STOP;
+}
+
+int class_register(struct class *cls)
+{
+	TRACE;
+	return 0;
+}
+
+void class_unregister(struct class *cls)
+{
+	TRACE_AND_STOP;
+}
+
+int  bus_register(struct bus_type *bus)
+{
+	TRACE;
+	return 0;
+}
+
+void bus_unregister(struct bus_type *bus)
+{
+	TRACE_AND_STOP;
+}
+

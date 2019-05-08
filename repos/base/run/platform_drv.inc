@@ -51,7 +51,7 @@ proc usb_host_drv_binary { } {
 #
 proc nic_drv_binary { } {
 	if {[have_spec linux]} { return linux_nic_drv }
-	if {[have_spec omap4] || [have_spec arndale] || [have_spec rpi]} { return usb_drv }
+	if {[have_spec omap4] || [have_spec arndale] || [have_spec rpi] || [have_spec rpi3bplus]} { return usb_drv }
 	if {[have_spec zynq]} { return zynq_nic_drv }
 	if {!([have_spec riscv] || [have_spec odroid_xu])} { return nic_drv }
 	return no_nic_drv_available
@@ -66,7 +66,7 @@ proc nic_drv_config { } {
 		return "<config><card type=\"fsl,imx25-fec\" mii=\"rmii\" irq=\"87\" mmio=\"0x63fec000\"/></config>" }
 	if {[have_spec imx6q_sabrelite]} {
 		return "<config><card type=\"fsl,imx6q-fec\" mii=\"rgmii\" irq=\"150\" mmio=\"0x2188000\"/></config>" }
-	if {[have_spec omap4] || [have_spec arndale] || [have_spec rpi]} {
+	if {[have_spec omap4] || [have_spec arndale] || [have_spec rpi] || [have_spec rpi3bplus]} {
 		return {<config uhci="yes" ohci="yes" ehci="yes"><nic mac="02:00:00:00:01:01"/></config>} }
 	return ""
 }
