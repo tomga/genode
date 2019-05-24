@@ -11,6 +11,7 @@ set build_components {
 }
 lappend_if [have_spec arndale] build_components drivers/platform
 lappend_if [have_spec rpi]     build_components drivers/platform
+lappend_if [have_spec rpi3bplus] build_components drivers/platform
 
 build $build_components
 create_boot_directory
@@ -36,7 +37,7 @@ set config  {
 		</default-route>
 		<default caps="100"/> }
 
-append_if [expr [have_spec arndale] || [have_spec rpi]] config {
+append_if [expr [have_spec arndale] || [have_spec rpi] || [have_spec rpi3bplus]] config {
 		<start name="platform_drv">
 			<resource name="RAM" quantum="1M"/>
 			<provides> <service name="Regulator"/>
@@ -72,6 +73,7 @@ set boot_modules {
 }
 lappend_if [have_spec arndale] boot_modules platform_drv
 lappend_if [have_spec rpi]     boot_modules platform_drv
+lappend_if [have_spec rpi3bplus] boot_modules platform_drv
 
 set disk_image "bin/sd_card.img"
 

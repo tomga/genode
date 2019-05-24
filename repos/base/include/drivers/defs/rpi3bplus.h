@@ -82,7 +82,7 @@ namespace Rpi3bplus {
 		/* SD card */
 		SDHCI_BASE = MMIO_0_BASE + 0x300000,
 		SDHCI_SIZE = 0x100,
-		SDHCI_IRQ  = 62,
+		/* SDHCI_IRQ  = 62, */
 	};
 
 	enum Videocore_cache_policy { NON_COHERENT = 0,

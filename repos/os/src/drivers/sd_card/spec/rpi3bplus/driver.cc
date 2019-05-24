@@ -86,12 +86,20 @@ Card_info Driver::_init()
 
 	_set_and_enable_clock(240);
 
+	Genode::log("Go_idle_state");
+	if (!issue_command(Go_idle_state())) {
+		warning("Go_idle_state command failed");
+		throw Detection_failed();
+	}
+	_delayer.usleep(2000);
+	Genode::log("Go_idle_state");
 	if (!issue_command(Go_idle_state())) {
 		warning("Go_idle_state command failed");
 		throw Detection_failed();
 	}
 	_delayer.usleep(2000);
 
+	Genode::log("Send_if_cond");
 	if (!issue_command(Send_if_cond())) {
 		warning("Send_if_cond command failed");
 		throw Detection_failed();
@@ -180,6 +188,7 @@ size_t Driver::_block_to_command_address(const size_t block_number)
 
 bool Driver::_issue_command(Command_base const &command)
 {
+	Genode::log("START: interrupt reg: ", Mmio::read<Interrupt>());
 	if (!_poll_and_wait_for<Status::Inhibit>(0)) {
 		error("controller inhibits issueing commands");
 		return false;
@@ -191,6 +200,7 @@ bool Driver::_issue_command(Command_base const &command)
 	Cmdtm::access_t cmd = 0;
 	Cmdtm::Index::set(cmd, command.index);
 	if (command.transfer != TRANSFER_NONE) {
+		Genode::log("command.transfer != TRANSFER_NONE");
 
 		Cmdtm::Isdata::set(cmd);
 		Cmdtm::Tm_blkcnt_en::set(cmd);
@@ -218,12 +228,16 @@ bool Driver::_issue_command(Command_base const &command)
 	/* write command */
 	Mmio::write<Cmdtm>(cmd);
 
+	Genode::log("BEFWAIT: interrupt reg: ", Mmio::read<Interrupt>());
 	if (!_poll_and_wait_for<Interrupt::Cmd_done>(1)) {
+		Genode::log("FAILURE: interrupt reg: ", Mmio::read<Interrupt>());
 		error("command timed out");
 		return false;
 	}
+	Genode::log("SUCCESS: interrupt reg: ", Mmio::read<Interrupt>());
 	/* clear interrupt state */
 	Mmio::write<Interrupt::Cmd_done>(1);
+	Genode::log("SUCCLEAN: interrupt reg: ", Mmio::read<Interrupt>());
 
 	return true;
 }

@@ -135,6 +135,15 @@ class Sd_card::Driver : public  Driver_base,
 		{
 			struct Cmd_done  : Bitfield<0, 1> { };
 			struct Data_done : Bitfield<1, 1> { };
+			struct Err       : Bitfield<15, 1> { };
+			struct CtoErr    : Bitfield<16, 1> { };
+			struct CCrcErr   : Bitfield<17, 1> { };
+			struct CEndErr   : Bitfield<18, 1> { };
+			struct CBadErr   : Bitfield<19, 1> { };
+			struct DToErr    : Bitfield<20, 1> { };
+			struct DCrcErr   : Bitfield<21, 1> { };
+			struct DEndErr   : Bitfield<22, 1> { };
+			struct ACmdErr   : Bitfield<24, 1> { };
 		};
 
 		struct Irpt_mask : Register<0x34, 32> { };
@@ -157,7 +166,7 @@ class Sd_card::Driver : public  Driver_base,
 
 		Env            &_env;
 		Timer_delayer   _delayer   { _env };
-		Irq_connection  _irq       { _env, Rpi3bplus::SDHCI_IRQ };
+		/* Irq_connection  _irq       { _env, Rpi3bplus::SDHCI_IRQ }; */
 		Card_info       _card_info { _init() };
 
 		template <typename REG>
