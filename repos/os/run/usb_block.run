@@ -78,10 +78,14 @@ append_if [expr !$use_qemu] config  {
 				picked up - an entry may be moved to the front to test the
 				corresponding device.
 			 -->
+			<!-- kingston DataTraveler II 512MB -->
+			<default-policy vendor_id="0x0951" product_id="0x1600"/>
+			<!-- kingston DataTraveler G4 16GB -->
+			<default-policy vendor_id="0x0951" product_id="0x1666"/>
+			<!-- kingston DataTraveler 4GB -->
+			<default-policy vendor_id="0x0951" product_id="0x1607"/>
 			<!-- zte open c needs interface="3" -->
 			<default-policy vendor_id="0x19d2" product_id="0x1350"/>
-			<!-- kingston -->
-			<default-policy vendor_id="0x0951" product_id="0x1666"/>
 			<!-- voyager gt stick -->
 			<default-policy vendor_id="0x1b1c" product_id="0x1a09"/>
 			<!-- usb3 hdd adapter -->
