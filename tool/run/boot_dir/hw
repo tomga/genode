@@ -156,10 +156,10 @@ proc run_boot_dir {binaries} {
 
 	# set symbolic link to image.elf file in TFTP directory for PXE boot
 	if {[expr [have_spec arm] || [have_spec arm_64]] && [have_include "load/tftp"]} {
-		exec ln -sf [run_dir]/boot/image.elf [load_tftp_base_dir][load_tftp_offset_dir]
+		exec cp [run_dir]/boot/image.elf [load_tftp_base_dir][load_tftp_offset_dir]
 
 		if {[have_include "image/uboot"]} {
-			exec ln -sf [pwd]/[run_dir]/uImage [load_tftp_base_dir][load_tftp_offset_dir]
+			exec cp [pwd]/[run_dir]/uImage [load_tftp_base_dir][load_tftp_offset_dir]
 		}
 	}
 
