@@ -34,9 +34,9 @@ class Genode::Bcm2835_mini_uart : Mmio
 		 */
 		struct AuxIrq : public Register<0x00, 32>
 		{
-			struct MiniUartIrq : Bitfield<0,1>  { }; // read only
-			struct Spi1Irq     : Bitfield<1,1>  { }; // read only
-			struct Spi2Irq     : Bitfield<2,1>  { }; // read only
+			struct MiniUartIrq : Bitfield<0,1>  { }; /* read only */
+			struct Spi1Irq     : Bitfield<1,1>  { }; /* read only */
+			struct Spi2Irq     : Bitfield<2,1>  { }; /* read only */
 		};
 
 		/**
@@ -76,7 +76,7 @@ class Genode::Bcm2835_mini_uart : Mmio
 		struct AuxMuIirReg : public Register<0x48, 32>
 		{
 			struct InterruptPending : Bitfield<0,1> { };
-			struct InterruptId      : Bitfield<1,2> { // read only
+			struct InterruptId      : Bitfield<1,2> { /* read only */
 				enum {
 					NO_INTERRUPTS = 0,
 					TRANSMIT_HOLDING_REGISTER_EMPTY = 1,
@@ -84,7 +84,7 @@ class Genode::Bcm2835_mini_uart : Mmio
 				};
 
 			};
-			struct FifoClear        : Bitfield<1,2> { // write only
+			struct FifoClear        : Bitfield<1,2> { /* write only */
 				enum {
 					CLEAR_RECEIVE_FIFO = 1,
                                         CLEAR_TRANSMIT_FIFO = 2,
@@ -117,9 +117,9 @@ class Genode::Bcm2835_mini_uart : Mmio
 		struct AuxMuLsrReg : public Register<0x54, 32>
 		{
 			struct DataReady        : Bitfield<0,1> { };
-			struct ReceiverOverrun  : Bitfield<1,1> { }; // read/clear only
-			struct TransmitterEmpty : Bitfield<5,1> { }; // read only
-			struct TransmitterIdle  : Bitfield<6,1> { }; // read only
+			struct ReceiverOverrun  : Bitfield<1,1> { }; /* read/clear only */
+			struct TransmitterEmpty : Bitfield<5,1> { }; /* read only */
+			struct TransmitterIdle  : Bitfield<6,1> { }; /* read only */
 		};
 
 		/**
@@ -127,7 +127,7 @@ class Genode::Bcm2835_mini_uart : Mmio
 		 */
 		struct AuxMuMsrReg : public Register<0x58, 32>
 		{
-			struct CtsStatus : Bitfield<5,1> { }; // read only
+			struct CtsStatus : Bitfield<5,1> { }; /* read only */
 		};
 
 		/**
@@ -164,18 +164,18 @@ class Genode::Bcm2835_mini_uart : Mmio
 		 */
 		struct AuxMuStatReg : public Register<0x64, 32>
 		{
-			struct SymbolAvailable        : Bitfield<0,1> { }; // read only
-			struct SpaceAvailable         : Bitfield<1,1> { }; // read only
-			struct ReceiverIsIdle         : Bitfield<2,1> { }; // read only
-			struct TransmitterIsIdle      : Bitfield<3,1> { }; // read only
-			struct ReceiverOverrun        : Bitfield<4,1> { }; // read only
-			struct TransmitFifoIsFull     : Bitfield<5,1> { }; // read only
-			struct RTSStatus              : Bitfield<6,1> { }; // read only
-			struct CTSLine                : Bitfield<7,1> { }; // read only
-			struct TransmitFifoIsEmpty    : Bitfield<8,1> { }; // read only
-			struct TransmitterDone        : Bitfield<9,1> { }; // read only
-			struct ReceiveFifoFillLevel   : Bitfield<16,4> { }; // read only
-			struct TransmitFifoFillLevel  : Bitfield<24,4> { }; // read only
+			struct SymbolAvailable        : Bitfield<0, 1> { }; /* read only */
+			struct SpaceAvailable         : Bitfield<1, 1> { }; /* read only */
+			struct ReceiverIsIdle         : Bitfield<2, 1> { }; /* read only */
+			struct TransmitterIsIdle      : Bitfield<3, 1> { }; /* read only */
+			struct ReceiverOverrun        : Bitfield<4, 1> { }; /* read only */
+			struct TransmitFifoIsFull     : Bitfield<5, 1> { }; /* read only */
+			struct RTSStatus              : Bitfield<6, 1> { }; /* read only */
+			struct CTSLine                : Bitfield<7, 1> { }; /* read only */
+			struct TransmitFifoIsEmpty    : Bitfield<8, 1> { }; /* read only */
+			struct TransmitterDone        : Bitfield<9, 1> { }; /* read only */
+			struct ReceiveFifoFillLevel   : Bitfield<16,4> { }; /* read only */
+			struct TransmitFifoFillLevel  : Bitfield<24,4> { }; /* read only */
 		};
 
 		/**
@@ -189,7 +189,11 @@ class Genode::Bcm2835_mini_uart : Mmio
 		/**
 		 * Idle until the device is ready for action
 		 */
-		void _wait_until_ready() { do {asm volatile("nop");} while (!read<AuxMuLsrReg::TransmitterEmpty>()) ; }
+		void _wait_until_ready() {
+			do {
+				asm volatile("nop");
+			} while (!read<AuxMuLsrReg::TransmitterEmpty>()) ;
+		}
 
 	public:
 
@@ -209,8 +213,10 @@ class Genode::Bcm2835_mini_uart : Mmio
 };
 
 
-Genode::Bcm2835_mini_uart::Bcm2835_mini_uart(addr_t const base, uint32_t const clock,
-                                             uint32_t const baud_rate) : Mmio(base)
+Genode::Bcm2835_mini_uart::Bcm2835_mini_uart(addr_t const base,
+                                             uint32_t const clock,
+                                             uint32_t const baud_rate)
+: Mmio(base)
 {
 	/* enable UART1, AUX mini uart */
 	write<AuxEnables>(read<AuxEnables::MiniUartEnable>() |
@@ -218,18 +224,12 @@ Genode::Bcm2835_mini_uart::Bcm2835_mini_uart(addr_t const base, uint32_t const c
 
 	write<AuxMuCntlReg>(0);
 	write<AuxMuLcrReg>(3);
-	//write<AuxMuLcrReg>(AuxMuLcrReg::DataSize::bits(1));
 	write<AuxMuMcrReg>(0);
-	/* write<AuxMuMcrReg>(AuxMuMcrReg::RTS::bits(0)); */
 	write<AuxMuIerReg>(0);
-	/* write<AuxMuIerReg>(AuxMuIerReg::EnableTransmitInterrupt::bits(0) | */
-	/*                    AuxMuIerReg::EnableReceiveInterrupt::bits(0)); */
 	write<AuxMuIirReg>(0xc6);
-	      uint32_t           const adjusted_br = ((clock / baud_rate) / 8) - 1;
-	write<AuxMuBaudReg>(AuxMuBaudReg::Baudrate::bits(adjusted_br)); // 115200 baud
-	
+	uint32_t const adjusted_br = ((clock / baud_rate) / 8) - 1;
+	write<AuxMuBaudReg>(AuxMuBaudReg::Baudrate::bits(adjusted_br));
 	write<AuxMuCntlReg>(3);
-
 	_wait_until_ready();
 }
 
