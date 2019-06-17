@@ -20,7 +20,7 @@ In order to mount the file system configure the <vfs> of your component as
 follow:
 
 ! <vfs>
-!   <trace ram="16M />
+!   <trace ram="16M"/>
 ! </vfs>
 
 The "ram" attribute is mandatory and configures the quota of the trace-session

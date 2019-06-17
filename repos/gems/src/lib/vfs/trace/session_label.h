@@ -1,7 +1,7 @@
 /*
  * \brief  Session label extension
  * \author Sebastian Sumpf
- * \date   2019-11-04
+ * \date   2019-06-04
  */
 
 /*
