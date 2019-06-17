@@ -106,11 +106,12 @@ struct Hw::Arm_64_cpu
 	);
 
 	SYSTEM_REGISTER(64, Sctlr_el1, sctlr_el1,
-		struct M   : Bitfield<0, 1> { };
-		struct A   : Bitfield<1, 1> { };
-		struct C   : Bitfield<2, 1> { };
-		struct Sa  : Bitfield<3, 1> { };
-		struct Sa0 : Bitfield<4, 1> { };
+		struct M   : Bitfield<0,  1> { };
+		struct A   : Bitfield<1,  1> { };
+		struct C   : Bitfield<2,  1> { };
+		struct Sa  : Bitfield<3,  1> { };
+		struct Sa0 : Bitfield<4,  1> { };
+		struct I   : Bitfield<12, 1> { };
 	);
 
 	struct Spsr : Genode::Register<64>

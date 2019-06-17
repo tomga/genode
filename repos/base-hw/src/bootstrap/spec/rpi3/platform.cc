@@ -133,6 +133,7 @@ unsigned Bootstrap::Platform::enable_mmu()
 
 	Cpu::Sctlr_el1::access_t sctlr = Cpu::Sctlr_el1::read();
 	Cpu::Sctlr_el1::C::set(sctlr, 1);
+	Cpu::Sctlr_el1::I::set(sctlr, 1);
 	Cpu::Sctlr_el1::A::set(sctlr, 0);
 	Cpu::Sctlr_el1::M::set(sctlr, 1);
 	Cpu::Sctlr_el1::Sa0::set(sctlr, 1);
