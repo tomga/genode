@@ -365,11 +365,12 @@ struct Vfs_trace::Local_factory : File_system_factory
 		try {
 			null_policy.construct(_env.env(), "null");
 			_policy_id = _trace.alloc_policy(null_policy->size());
-		} catch (Out_of_caps) { throw; }
-			catch (Out_of_ram)  { throw; }
-			catch (...) {
+		}
+		catch (Out_of_caps) { throw; }
+		catch (Out_of_ram)  { throw; }
+		catch (...) {
 				error("failed to attach 'null' trace policy."
-			        "Please make sure it is provided as a ROM module.");
+				      "Please make sure it is provided as a ROM module.");
 				throw;
 		}
 
