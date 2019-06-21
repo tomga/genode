@@ -20,7 +20,9 @@ proc bootstrap_link_address { } {
 	if {[have_spec "zynq"]}            { return "0x00100000" }
 	if {[have_spec "riscv"]}           { return "0x81000000" }
 	if {[have_spec "rpi"]}             { return "0x00800000" }
+	if {[have_spec "rpi2"]}            { return "0x00800000" }
 	if {[have_spec "rpi3"]}            { return "0x00800000" }
+	if {[have_spec "rpi3_32"]}         { return "0x00800000" }
 	if {[have_spec "nit6_solox"]}      { return "0x88000000" }
 
 	puts "unknown platform no linker address known"
@@ -218,7 +220,9 @@ proc base_src { } {
 	if {[have_spec x86_64] &&  [have_spec muen]}         { return base-hw-muen }
 	if {[have_spec pbxa9]}                               { return base-hw-pbxa9 }
 	if {[have_spec rpi]}                                 { return base-hw-rpi }
+	if {[have_spec rpi2]}                                { return base-hw-rpi2 }
 	if {[have_spec rpi3]}                                { return base-hw-rpi3 }
+	if {[have_spec rpi3_32]}                             { return base-hw-rpi3_32 }
 	if {[have_spec imx6q_sabrelite]}                     { return base-hw-imx6q_sabrelite }
 	if {[have_spec imx7d_sabre]}                         { return base-hw-imx7d_sabre }
 	if {[have_spec imx8q_evk]}                           { return base-hw-imx8q_evk }
