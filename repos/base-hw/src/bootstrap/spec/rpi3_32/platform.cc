@@ -33,6 +33,7 @@ Bootstrap::Platform::Board::Board()
 
 static inline void prepare_nonsecure_world()
 {
+	// using ::Board::Cpu;
 	using Cpu = Hw::Arm_cpu;
 
 	/* if we are already in HYP mode we're done (depends on u-boot version) */
@@ -75,6 +76,7 @@ static inline void prepare_nonsecure_world()
 
 static inline void prepare_hypervisor(Genode::addr_t table)
 {
+	// using ::Board::Cpu;
 	using Cpu = Hw::Arm_cpu;
 
 	/* set hypervisor exception vector */
@@ -159,7 +161,9 @@ static inline void switch_to_supervisor_mode()
 unsigned Bootstrap::Platform::enable_mmu()
 {
 	static volatile bool primary_cpu = true;
-	pic.init_cpu_local();
+
+	/* locally initialize interrupt controller */
+	//::Board::Pic pic { };
 
 	prepare_nonsecure_world();
 	prepare_hypervisor((addr_t)core_pd->table_base);
@@ -168,21 +172,21 @@ unsigned Bootstrap::Platform::enable_mmu()
 	Cpu::Sctlr::init();
 	Cpu::Cpsr::init();
 
-	cpu.invalidate_data_cache();
+	Cpu::invalidate_data_cache();
 
 	/* primary cpu wakes up all others */
 	if (primary_cpu && NR_OF_CPUS > 1) {
 		primary_cpu = false;
-		cpu.wake_up_all_cpus(&_start_setup_stack);
+		Cpu::wake_up_all_cpus(&_start_setup_stack);
 	}
 
-	cpu.enable_mmu_and_caches((Genode::addr_t)core_pd->table_base);
+	Cpu::enable_mmu_and_caches((Genode::addr_t)core_pd->table_base);
 
 	return Cpu::Mpidr::Aff_0::get(Cpu::Mpidr::read());
 }
 
 
-void Bootstrap::Cpu::wake_up_all_cpus(void * const ip)
+void Board::Cpu::wake_up_all_cpus(void * const ip)
 {
 	// Genode::log("wake_up_all_cpus ", ip, " ", (void*)(Board::SYSTEM_TIMER_MMIO_BASE + 0x9c));
 	*(void * volatile *)(Board::SYSTEM_TIMER_MMIO_BASE + 0x9c) = ip; // cpu 1
