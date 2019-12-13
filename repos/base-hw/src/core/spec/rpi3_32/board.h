@@ -16,13 +16,13 @@
 
 #include <hw/spec/arm_64/rpi3_board.h>
 #include <hw/spec/arm/cortex_a15.h>
+#include <spec/arm/bcm2837_pic.h>
+#include <spec/arm/generic_timer.h>
 
 namespace Board {
 	using namespace Hw::Rpi3_board;
 
-	using Cpu_mmio = Hw::Cortex_a15_mmio<IRQ_CONTROLLER_BASE>;
-
-	static constexpr bool SMP = true;
+	enum { TIMER_IRQ = 1 };
 }
 
 #endif /* _CORE__SPEC__RPI3_32__BOARD_H_ */
