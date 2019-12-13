@@ -8,20 +8,13 @@
 # sequence here is important first rpi3_32 and rpi2 later
 INC_DIR += $(REP_DIR)/src/core/spec/rpi3_32
 INC_DIR += $(REP_DIR)/src/core/spec/rpi2
-INC_DIR += $(REP_DIR)/src/core/spec/arm_v7/virtualization
 
 # add C++ sources
 SRC_CC += spec/rpi2/pic.cc
 SRC_CC += spec/rpi2/platform_services.cc
-SRC_CC += kernel/vm_thread_on.cc
-SRC_CC += spec/arm_v7/virtualization/kernel/vm.cc
-SRC_CC += spec/arm_v7/vm_session_component.cc
-SRC_CC += spec/arm_v7/virtualization/vm_session_component.cc
-SRC_CC += vm_session_common.cc
-SRC_CC += spec/rpi2/timer.cc
-
-# add assembly sources
-SRC_S += spec/arm_v7/virtualization/exception_vector.s
+SRC_CC += spec/arm/bcm2837_pic.cc
+SRC_CC += spec/arm/generic_timer.cc
+SRC_CC += kernel/vm_thread_off.cc
 
 NR_OF_CPUS = 4
 

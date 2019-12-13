@@ -17,7 +17,6 @@
 #include <hw/spec/arm/rpi2_board.h>
 #include <hw/spec/arm/lpae.h>
 #include <spec/arm/cpu.h>
-#include <spec/arm/pic.h>
 
 namespace Board {
 	using namespace Hw::Rpi2_board;
