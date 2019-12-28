@@ -13,6 +13,8 @@
 
 #include <platform.h>
 
+#include <drivers/platform/bcm2837_control.h>
+
 extern "C" void *    _start_setup_stack;   /* entrypoint for non-boot CPUs */
 static unsigned char hyp_mode_stack[1024]; /* hypervisor mode's kernel stack */
 
@@ -157,6 +159,7 @@ static inline void switch_to_supervisor_mode()
 }
 
 
+
 unsigned Bootstrap::Platform::enable_mmu()
 {
 	static volatile bool primary_cpu = true;
@@ -164,6 +167,10 @@ unsigned Bootstrap::Platform::enable_mmu()
 	/* locally initialize interrupt controller */
 	//::Board::Pic pic { };
 
+	if (primary_cpu) {
+		Genode::Bcm2837_control bcm2837_control(LOCAL_IRQ_CONTROLLER_BASE);
+		bcm2837_control.initialize_timer_frequency();
+	}
 
 	prepare_nonsecure_world();
 	prepare_hypervisor((addr_t)core_pd->table_base);
