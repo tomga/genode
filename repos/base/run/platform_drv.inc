@@ -7,6 +7,7 @@ proc have_platform_drv {} {
 	          || [have_spec imx53] \
 	          || [have_spec rpi] \
 	          || [have_spec rpi2] \
+	          || [have_spec rpi3] \
 	          || [have_spec rpi3_32] \
 	          || [have_spec odroid_x2] \
 	          || [have_spec x86]]
