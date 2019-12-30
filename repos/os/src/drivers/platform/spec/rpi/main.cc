@@ -70,7 +70,7 @@ class Platform::Session_component : public Genode::Rpc_object<Platform::Session>
 			                                       // TODO: make a function for this
 			info.size = res.size;
 
-			log("setup_framebuffer ", (void*) info.addr, ", ", info.size, ", ", info.phys_width, ", ", info.phys_height);
+			log("setup_framebuffer ", (void*) (long) info.addr, ", ", info.size, ", ", info.phys_width, ", ", info.phys_height);
 		}
 
 		bool power_state(Power id) override
