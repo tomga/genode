@@ -16,7 +16,7 @@
 
 using Board::Cpu;
 
-extern "C" void * _start;
+extern "C" void * _crt0_enable_fpu;
 
 static inline void prepare_non_secure_world()
 {
@@ -144,6 +144,9 @@ unsigned Bootstrap::Platform::enable_mmu()
 	Cpu::Ttbr::access_t ttbr =
 		Cpu::Ttbr::Baddr::masked((Genode::addr_t)core_pd->table_base);
 
+	/* primary cpu wakes up all others */
+	if (primary && NR_OF_CPUS > 1) Cpu::wake_up_all_cpus(&_crt0_enable_fpu);
+
 	while (Cpu::current_privilege_level() > Cpu::Current_el::EL1) {
 		if (Cpu::current_privilege_level() == Cpu::Current_el::EL3) {
 			prepare_non_secure_world();
@@ -152,9 +155,6 @@ unsigned Bootstrap::Platform::enable_mmu()
 			prepare_hypervisor(ttbr);
 		}
 	}
-
-	/* primary cpu wakes up all others */
-	if (primary && NR_OF_CPUS > 1) Cpu::wake_up_all_cpus(&_start);
 
 	/* enable performance counter for user-land */
 	Cpu::Pmuserenr_el0::write(0b1111);

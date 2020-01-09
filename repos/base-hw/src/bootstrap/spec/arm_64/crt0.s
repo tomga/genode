@@ -14,6 +14,7 @@
 .section ".text.crt0"
 
 	.global _start
+	.global _crt0_enable_fpu
 	_start:
 
 	/***********************

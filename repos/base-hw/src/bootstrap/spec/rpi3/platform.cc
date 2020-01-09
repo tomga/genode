@@ -48,6 +48,9 @@ void Board::Cpu::wake_up_all_cpus(void * ip)
 {
 	_crt0_qemu_start_secondary_cpus = 1;
 
-	::Pic pic(ip);
+	*((void * volatile *) 0xe0) = ip; // cpu 1
+	*((void * volatile *) 0xe8) = ip; // cpu 2
+	*((void * volatile *) 0xf0) = ip; // cpu 3
+
 	asm volatile("dsb #15; sev");
 }
