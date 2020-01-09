@@ -141,6 +141,17 @@ unsigned Bootstrap::Platform::enable_mmu()
 	bool primary = primary_cpu;
 	if (primary) primary_cpu = false;
 
+	// static volatile int cpu_counter = 0;
+	// int cpu_id = 0;
+	// if (!primary) {
+		// ++cpu_counter;
+		// cpu_id = cpu_counter;
+
+		// static volatile int cpudelay[NR_OF_CPUS];
+		// for (int j = 0; j < 10; j++) for (cpudelay[cpu_id] = 0; cpudelay[cpu_id] < 2000000; cpudelay[cpu_id]++);
+		//Genode::log("cpu: ", cpu_id);
+	// }
+
 	Cpu::Ttbr::access_t ttbr =
 		Cpu::Ttbr::Baddr::masked((Genode::addr_t)core_pd->table_base);
 
@@ -188,6 +199,8 @@ unsigned Bootstrap::Platform::enable_mmu()
 	Cpu::Tcr_el1::As::set(tcr, 1);
 	Cpu::Tcr_el1::write(tcr);
 
+	/*if (!primary)*/ //Genode::log("cortex_a53_mmu.cc:", __LINE__);
+
 	Cpu::Sctlr::access_t sctlr = Cpu::Sctlr_el1::read();
 	Cpu::Sctlr::C::set(sctlr, 1);
 	Cpu::Sctlr::I::set(sctlr, 1);
@@ -197,6 +210,8 @@ unsigned Bootstrap::Platform::enable_mmu()
 	Cpu::Sctlr::Sa::set(sctlr, 0);
 	Cpu::Sctlr::Uct::set(sctlr, 1);
 	Cpu::Sctlr_el1::write(sctlr);
+
+	/*if (!primary)*/ //Genode::log("cortex_a53_mmu.cc:", __LINE__);
 
 	return 0;
 }

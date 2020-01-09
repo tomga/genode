@@ -20,7 +20,7 @@ SRC_S += spec/arm_v8/crt0.s
 
 vpath spec/64bit/memory_map.cc $(BASE_DIR)/../base-hw/src/lib/hw
 
-NR_OF_CPUS = 1
+NR_OF_CPUS = 4
 
 # include less specific configuration
 include $(REP_DIR)/lib/mk/core-hw.inc

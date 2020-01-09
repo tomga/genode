@@ -149,6 +149,7 @@ Mapping Platform::_load_elf()
 
 void Platform::start_core(unsigned cpu_id)
 {
+	//Genode::log("a", cpu_id);
 	typedef void (* Entry)(unsigned);
 	Entry __attribute__((noreturn)) const entry
 		= reinterpret_cast<Entry>(core_elf.entry());

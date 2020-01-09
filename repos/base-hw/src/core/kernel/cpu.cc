@@ -174,6 +174,7 @@ Cpu::Cpu(unsigned const id,
 bool Cpu_pool::initialize()
 {
 	unsigned id = Cpu::executing_id();
+	//Genode::log("ini: ", id);
 	_cpus[id].construct(id, _global_work_list);
 	return --_initialized == 0;
 }
@@ -181,6 +182,7 @@ bool Cpu_pool::initialize()
 
 Cpu & Cpu_pool::cpu(unsigned const id)
 {
+	//Genode::log("id: ", id, "c", _cpus[id].constructed(), "x");
 	assert(id < _count && _cpus[id].constructed());
 	return *_cpus[id];
 }

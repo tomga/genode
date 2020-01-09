@@ -51,7 +51,9 @@ extern "C" void kernel_init()
 	 * calling a Semaphore, which will call Kernel::stop_thread() or
 	 * Kernel::yield() system-calls in this code
 	 */
+	// Genode::log("ki1: ", Cpu::executing_id());
 	while (Cpu::executing_id() != Cpu::primary_id() && !lock_ready) { ; }
+	// Genode::log("ki2: ", Cpu::executing_id());
 
 	{
 		Lock::Guard guard(data_lock());

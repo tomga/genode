@@ -202,6 +202,7 @@ void Thread::_call_thread_quota()
 void Thread::_call_start_thread()
 {
 	/* lookup CPU */
+	// Genode::log("_call_start_thread");
 	Cpu & cpu = cpu_pool().cpu(user_arg_2());
 	user_arg_0(0);
 	Thread &thread = *(Thread*)user_arg_1();
@@ -765,6 +766,8 @@ Core_thread::Core_thread()
 	utcb->cap_add(core_capid());
 	utcb->cap_add(cap_id_invalid());
 	utcb->cap_add(cap_id_invalid());
+
+	// Genode::log("Core_thread() ", Cpu::executing_id());
 
 	/* start thread with stack pointer at the top of stack */
 	regs->sp = (addr_t)&__initial_stack_base[0] + DEFAULT_STACK_SIZE;
