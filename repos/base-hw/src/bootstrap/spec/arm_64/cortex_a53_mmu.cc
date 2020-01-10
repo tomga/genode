@@ -141,15 +141,15 @@ unsigned Bootstrap::Platform::enable_mmu()
 	bool primary = primary_cpu;
 	if (primary) primary_cpu = false;
 
-	// static volatile int cpu_counter = 0;
-	// int cpu_id = 0;
+	static volatile int cpu_counter = -1;
+	int cpu_id = 0;
 	// if (!primary) {
-		// ++cpu_counter;
-		// cpu_id = cpu_counter;
+		++cpu_counter;
+		cpu_id = cpu_counter;
 
-		// static volatile int cpudelay[NR_OF_CPUS];
-		// for (int j = 0; j < 10; j++) for (cpudelay[cpu_id] = 0; cpudelay[cpu_id] < 2000000; cpudelay[cpu_id]++);
-		//Genode::log("cpu: ", cpu_id);
+		static volatile int cpudelay[NR_OF_CPUS];
+		for (int j = 0; j < 15; j++) for (cpudelay[cpu_id] = 0; cpudelay[cpu_id] < 2000000; cpudelay[cpu_id]++);
+		Genode::log("cpu: ", cpu_id);
 	// }
 
 	Cpu::Ttbr::access_t ttbr =
@@ -199,7 +199,10 @@ unsigned Bootstrap::Platform::enable_mmu()
 	Cpu::Tcr_el1::As::set(tcr, 1);
 	Cpu::Tcr_el1::write(tcr);
 
-	/*if (!primary)*/ //Genode::log("cortex_a53_mmu.cc:", __LINE__);
+	/*if (!primary)*/ Genode::log("cortex_a53_mmu.cc:", __LINE__, Cpu::Mpidr::read());
+	/*if (!primary)*/ Genode::log("            Mpidr:", Cpu::Mpidr::read());
+	/*if (!primary)*/ Genode::log("     Mpidr & 0xff:", Cpu::Mpidr::read() & 0xff);
+	for (int j = 0; j < 1; j++) for (cpudelay[cpu_id] = 0; cpudelay[cpu_id] < 2000000; cpudelay[cpu_id]++);
 
 	Cpu::Sctlr::access_t sctlr = Cpu::Sctlr_el1::read();
 	Cpu::Sctlr::C::set(sctlr, 1);

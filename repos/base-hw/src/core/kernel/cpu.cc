@@ -182,7 +182,7 @@ bool Cpu_pool::initialize()
 
 Cpu & Cpu_pool::cpu(unsigned const id)
 {
-	//Genode::log("id: ", id, "c", _cpus[id].constructed(), "x");
+	Genode::log("id:", id, ",cnt:", _count, ",c:" , _cpus[id].constructed(), ".", Cpu::Mpidr::read() & 0xff);
 	assert(id < _count && _cpus[id].constructed());
 	return *_cpus[id];
 }

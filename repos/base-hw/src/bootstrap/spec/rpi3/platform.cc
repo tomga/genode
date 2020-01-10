@@ -48,11 +48,11 @@ void Board::Cpu::wake_up_all_cpus(void * ip)
 {
 	_crt0_qemu_start_secondary_cpus = 1;
 
-	*((void * volatile *) 0xe0) = ip; // cpu 1
-	*((void * volatile *) 0xe8) = ip; // cpu 2
-	*((void * volatile *) 0xf0) = ip; // cpu 3
+	// *((void * volatile *) 0xe0) = ip; // cpu 1
+	// *((void * volatile *) 0xe8) = ip; // cpu 2
+	// *((void * volatile *) 0xf0) = ip; // cpu 3
 
-	asm volatile("dsb #15; sev");
+	// asm volatile("dsb #15; sev");
 
 	// Genode::log("wake_up_all_cpus ", ip, " ", (void*)(Board::SYSTEM_TIMER_MMIO_BASE + 0x9c));
 	// Genode::log(" *", *((void * volatile *) 0xe0));
@@ -61,22 +61,22 @@ void Board::Cpu::wake_up_all_cpus(void * ip)
 
 	// Genode::log("s0 ", ip);
 
-	// static volatile int i = 0;
+	static volatile int i = 0;
 
-	// *((void * volatile *) 0xe0) = ip; // cpu 1
-	// asm volatile("dsb #15; sev;");
-	// for (int j = 0; j < 2; j++) for (i = 0; i < 2000000; i++);
-	// Genode::log("S1");
+	*((void * volatile *) 0xe0) = ip; // cpu 1
+	asm volatile("dsb #15; sev;");
+	for (int j = 0; j < 2; j++) for (i = 0; i < 2000000; i++);
+	Genode::log("S1");
 
-	// *((void * volatile *) 0xe8) = ip; // cpu 2
-	// asm volatile("dsb #15; sev;");
-	// for (int j = 0; j < 2; j++) for (i = 0; i < 2000000; i++);
-	// Genode::log("S2");
+	*((void * volatile *) 0xe8) = ip; // cpu 2
+	asm volatile("dsb #15; sev;");
+	for (int j = 0; j < 2; j++) for (i = 0; i < 2000000; i++);
+	Genode::log("S2");
 
-	// *((void * volatile *) 0xf0) = ip; // cpu 3
-	// asm volatile("dsb #15; sev;");
-	// for (int j = 0; j < 2; j++) for (i = 0; i < 2000000; i++);
-	// Genode::log("S3");
+	*((void * volatile *) 0xf0) = ip; // cpu 3
+	asm volatile("dsb #15; sev;");
+	for (int j = 0; j < 2; j++) for (i = 0; i < 2000000; i++);
+	Genode::log("S3");
 
 	// Genode::log(" *", *((void * volatile *) 0xe0), " ", sizeof(*((void * volatile *) 0xe0)));
 	// Genode::log(" *", *((void * volatile *) 0xe8));
