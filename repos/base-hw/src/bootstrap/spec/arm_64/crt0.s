@@ -52,11 +52,22 @@
 	b 1b
 
 
+	.global _crt0_start_secondary
+	_crt0_start_secondary:
+
+
+	/***********************
+	 ** Detect CPU number **
+	 ***********************/
+
+	mrs x0, mpidr_el1
+	and x0, x0, #0b11111111
+
+
 	/****************
 	 ** Enable FPU **
 	 ****************/
 
-	.global _crt0_enable_fpu
 	_crt0_enable_fpu:
 	mov x1, #0b11
 	lsl x1, x1, #20
