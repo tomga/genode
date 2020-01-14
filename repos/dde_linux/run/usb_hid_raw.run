@@ -70,6 +70,7 @@ set build_components {
 	test/input
 	server/dynamic_rom
 	server/report_rom
+	app/top
 }
 
 lappend_if [have_spec gpio] build_components drivers/gpio
@@ -96,6 +97,7 @@ append config {
 		<service name="RM"/>
 		<service name="CPU"/>
 		<service name="LOG"/>
+		<service name="TRACE"/>
 	</parent-provides>
 	<default-route>
 		<any-service> <parent/> <any-child/> </any-service>
@@ -123,6 +125,11 @@ append config {
 		<config verbose="no">
 			<default-policy report="usb_drv -> devices"/>
 		</config>
+	</start>
+
+	<start name="top">
+		<resource name="RAM" quantum="2M"/>
+		<config period_ms="2000"/>
 	</start>
 
 	<start name="usb_drv" caps="150"> }
@@ -198,7 +205,7 @@ install_config $config
 
 # generic modules
 set boot_modules {
-	core ld.lib.so init timer usb_hid_drv test-input dynamic_rom report_rom
+	core ld.lib.so init timer usb_hid_drv test-input dynamic_rom report_rom top
 }
 
 append boot_modules [usb_host_drv_binary]
