@@ -86,11 +86,11 @@ class Lx_kit::Timer : public Lx::Timer
 
 		unsigned long                               &_jiffies;
 		::Timer::Connection                          _timer_conn;
-		::Timer::Connection                          _timer_conn_modern;
 		Lx_kit::List<Context>                        _list;
 		Lx::Task                                     _timer_task;
 		Genode::Signal_handler<Lx_kit::Timer>        _dispatcher;
 		Genode::Tslab<Context, 32 * sizeof(Context)> _timer_alloc;
+		Lx::jiffies_update_func                      _jiffies_func = nullptr;
 
 		/**
 		 * Lookup local timer
@@ -168,7 +168,6 @@ class Lx_kit::Timer : public Lx::Timer
 		:
 			_jiffies(jiffies),
 			_timer_conn(env),
-			_timer_conn_modern(env),
 			_timer_task(Timer::run_timer, reinterpret_cast<void*>(this),
 			            "timer", Lx::Task::PRIORITY_2, Lx::scheduler()),
 			_dispatcher(ep, *this, &Lx_kit::Timer::_handle),
@@ -290,8 +289,12 @@ class Lx_kit::Timer : public Lx::Timer
 			 * Do not use lx_emul usecs_to_jiffies(unsigned int) because
 			 * of implicit truncation!
 			 */
-			_jiffies = (Genode::uint64_t)_timer_conn_modern.curr_time().trunc_to_plain_ms().value / JIFFIES_TICK_MS;
+			_jiffies = _jiffies_func ? _jiffies_func() :
+				(Genode::uint64_t)_timer_conn.curr_time().trunc_to_plain_ms().value / JIFFIES_TICK_MS;
 		}
+
+		void register_jiffies_func(Lx::jiffies_update_func func) {
+			_jiffies_func = func; }
 
 		void usleep(Genode::uint64_t us) {
 			_timer_conn.usleep(us); }
@@ -314,4 +317,10 @@ Lx::Timer &Lx::timer(Genode::Env *env, Genode::Entrypoint *ep,
 void Lx::timer_update_jiffies()
 {
 	timer().update_jiffies();
+}
+
+
+void Lx::register_jiffies_func(jiffies_update_func func)
+{
+	dynamic_cast<Lx_kit::Timer &>(timer()).register_jiffies_func(func);
 }
