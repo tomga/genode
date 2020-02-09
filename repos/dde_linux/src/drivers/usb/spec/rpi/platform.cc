@@ -17,7 +17,6 @@
 #include <util/mmio.h>
 #include <platform_session/connection.h>
 
-
 /* emulation */
 #include <platform.h>
 #include <lx_emul.h>
@@ -30,9 +29,105 @@
 
 using namespace Genode;
 
+namespace Genode { class Bcm2835_base; }
 namespace Genode { template <unsigned long> class Sp804_base; }
 
 unsigned dwc_irq(Genode::Env&);
+
+
+class Genode::Bcm2835_base : public Mmio
+{
+protected:
+	enum {
+		SYSTEM_TIMER_MMIO_BASE = 0x20003000,
+		SYSTEM_TIMER_MMIO_SIZE = 0x1000,
+		SYSTEM_TIMER_CLOCK     = 1000000,
+
+		TICS_PER_MS = SYSTEM_TIMER_CLOCK / 1000
+	};
+
+	struct Cs  : Register<0x0, 32> { struct M1 : Bitfield<1, 1> { }; };
+	struct Clo : Register<0x4,  32> { };
+	struct Cmp : Register<0x10, 32> { };
+
+	unsigned long& jiffies_to_use;
+
+	unsigned _last_tick;
+
+public:
+	Bcm2835_base(addr_t const mmio_base, unsigned long& jiffies_to_use)
+		: Mmio(mmio_base), jiffies_to_use(jiffies_to_use) {
+		jiffies_to_use = 0;
+		_last_tick = read<Clo>();
+	}
+
+	unsigned long update_jiffies()
+	{
+		unsigned current_tick = read<Clo>();
+
+		unsigned delta_ticks = current_tick - _last_tick; // TODO: handle current tick < last tick
+		unsigned delta_ms = ticks_to_ms(delta_ticks);
+		unsigned long delta_jiffies = msecs_to_jiffies(delta_ms);
+
+		// static int loggedCount = 0;
+		// if (loggedCount < 5 || loggedCount % 100 == 0) {
+		// 	Genode::log("bcm_update_jiffies(): ", current_tick, " ", jiffies_to_use, " ", delta_ms, " ", delta_jiffies);
+		// }
+		// loggedCount++;
+
+		/* delta < 1 jiffie */
+		if (!delta_jiffies)
+			return jiffies_to_use;
+
+		jiffies_to_use += delta_jiffies;
+
+		unsigned remainder_ms = delta_ms % JIFFIES_TICK_MS;
+		unsigned remainder_ticks = ticks_to_ms_remainder(delta_ticks) + ms_to_ticks(remainder_ms);
+		_last_tick = current_tick - remainder_ticks;
+
+		return jiffies_to_use;
+	}
+
+	/**
+	 * Translate native timer value to milliseconds
+	 */
+	static unsigned long ticks_to_ms(unsigned long const tics) {
+		return tics / TICS_PER_MS; }
+
+	static unsigned long ms_to_ticks(unsigned long const ms) {
+		return ms * TICS_PER_MS; }
+
+	static unsigned long ticks_to_ms_remainder(unsigned long const tics) {
+		return tics % TICS_PER_MS; }
+
+};
+
+struct Platform_timer_bcm : Attached_io_mem_dataspace,
+                            Bcm2835_base
+{
+	Platform_timer_bcm(Genode::Env &env, unsigned long& jiffies_to_use) :
+		Attached_io_mem_dataspace(env, SYSTEM_TIMER_MMIO_BASE, SYSTEM_TIMER_MMIO_SIZE),
+		Bcm2835_base((Genode::addr_t)local_addr<void>(), jiffies_to_use)
+	{ }
+
+	static Platform_timer_bcm *_timerPtr;
+
+	static Platform_timer_bcm &instance(Genode::Env &env, unsigned long& jiffies_to_use)
+	{
+		Genode::log("Platform_timer_bcm::instance");
+		static Platform_timer_bcm _timer(env, jiffies_to_use);
+		_timerPtr = &_timer;
+		return _timer;
+	}
+
+	static Platform_timer_bcm &instance()
+	{
+		return *_timerPtr;
+	}
+};
+
+Platform_timer_bcm *Platform_timer_bcm::_timerPtr(nullptr);
+
 
 
 /**
@@ -73,52 +168,75 @@ class Genode::Sp804_base : public Mmio
 	 */
 	struct Int_clr : Register<0xc, 1> { };
 
-	unsigned _last_tick = Value::MAX_VALUE;
+	unsigned long& jiffies_to_use;
 
-	public:
+	unsigned _last_tick      = Value::MAX_VALUE;
 
-		/**
-		 * Constructor, clears interrupt output
-		 */
-		Sp804_base(addr_t const mmio_base) : Mmio(mmio_base)
-		{
-			/* clear irq */
-			write<Int_clr>(1);
+public:
 
-			/* disabble and configure */
-			write<typename Control::Timer_en>(0);
-			write<Control>(Control::Mode::bits(0)     | /* free running */
-			               Control::Int_en::bits(0)   | /* IRQ disabled */
-			               Control::Pre::bits(0)      | /* clk divider 1 */
-			               Control::Size::bits(1)     | /* 32 bit */
-			               Control::Oneshot::bits(0));  /* one-shot off */
+	/**
+	 * Constructor, clears interrupt output
+	 */
+	Sp804_base(addr_t const mmio_base, unsigned long& jiffies_to_use)
+		: Mmio(mmio_base), jiffies_to_use(jiffies_to_use)
+	{
+		jiffies_to_use = 0;
 
-			/* start */
-			write<Load>(Value::MAX_VALUE);
-			write<typename Control::Timer_en>(1);
-		}
+		/* clear irq */
+		write<Int_clr>(1);
 
-		unsigned long update_jiffies()
-		{
-			unsigned tick = read<Value>();
+		/* disabble and configure */
+		write<typename Control::Timer_en>(0);
+		write<Control>(Control::Mode::bits(0)     | /* free running */
+									 Control::Int_en::bits(0)   | /* IRQ disabled */
+									 Control::Pre::bits(0)      | /* clk divider 1 */
+									 Control::Size::bits(1)     | /* 32 bit */
+									 Control::Oneshot::bits(0));  /* one-shot off */
 
-			/* timer runs backwards */
-			unsigned delta = ticks_to_ms(_last_tick - tick);
+		/* start */
+		write<Load>(Value::MAX_VALUE);
+		write<typename Control::Timer_en>(1);
+	}
 
-			/* delta < 1 jiffie */
-			if (!msecs_to_jiffies(delta))
-				return jiffies;
+	unsigned long update_jiffies()
+	{
+		unsigned current_tick = read<Value>();
 
-			jiffies   += msecs_to_jiffies(delta);
-			_last_tick = tick;
-			return jiffies;
-		}
+		/* timer runs backwards */
+		unsigned delta_ticks = _last_tick - current_tick; // TODO: handle current tick > last tick
+		unsigned delta_ms = ticks_to_ms(delta_ticks);
+		unsigned long delta_jiffies = msecs_to_jiffies(delta_ms);
 
-		/**
-		 * Translate native timer value to milliseconds
-		 */
-		static unsigned long ticks_to_ms(unsigned long const tics) {
-			return tics / TICS_PER_MS; }
+		// static int loggedCount = 0;
+		// if (loggedCount < 5 || loggedCount % 100 == 0) {
+		// 	Genode::log("sp8_update_jiffies(): ", current_tick, " ", jiffies_to_use, " ", delta_ms, " ", delta_jiffies);
+		// }
+		// loggedCount++;
+
+		/* delta < 1 jiffie */
+		if (!delta_jiffies)
+			return jiffies_to_use;
+
+		jiffies_to_use += delta_jiffies;
+
+		unsigned remainder_ms = delta_ms % JIFFIES_TICK_MS;
+		unsigned remainder_ticks = ticks_to_ms_remainder(delta_ticks) + ms_to_ticks(remainder_ms);
+		_last_tick = current_tick + remainder_ticks;
+
+		return jiffies_to_use;
+	}
+
+	/**
+	 * Translate native timer value to milliseconds
+	 */
+	static unsigned long ticks_to_ms(unsigned long const tics) {
+		return tics / TICS_PER_MS; }
+
+	static unsigned long ms_to_ticks(unsigned long const ms) {
+		return ms * TICS_PER_MS; }
+
+	static unsigned long ticks_to_ms_remainder(unsigned long const tics) {
+		return tics % TICS_PER_MS; }
 };
 
 
@@ -129,16 +247,17 @@ enum { TIMER_MMIO_BASE   = 0x2000b400,
 struct Platform_timer : Attached_io_mem_dataspace,
                         Sp804_base<TIMER_CLOCK>
 {
-	Platform_timer(Genode::Env &env) :
+	Platform_timer(Genode::Env &env, unsigned long& jiffies_to_use) :
 		Attached_io_mem_dataspace(env, TIMER_MMIO_BASE, TIMER_MMIO_SIZE),
-		Sp804_base((Genode::addr_t)local_addr<void>())
+		Sp804_base((Genode::addr_t)local_addr<void>(), jiffies_to_use)
 	{ }
 
 	static Platform_timer *_timerPtr;
 
-	static Platform_timer &instance(Genode::Env &env)
+	static Platform_timer &instance(Genode::Env &env, unsigned long& jiffies_to_use)
 	{
-		static Platform_timer _timer(env);
+		Genode::log("Platform_timer::instance");
+		static Platform_timer _timer(env, jiffies_to_use);
 		_timerPtr = &_timer;
 		return _timer;
 	}
@@ -153,7 +272,21 @@ Platform_timer *Platform_timer::_timerPtr(nullptr);
 
 static unsigned long jiffies_update_func()
 {
-	return Platform_timer::instance().update_jiffies();
+	unsigned long jiffies1 = Platform_timer::instance().update_jiffies();
+	unsigned long jiffies2 = Platform_timer_bcm::instance().update_jiffies();
+	static unsigned long jiffies1_start = jiffies1;
+	static unsigned long jiffies2_start = jiffies2;
+	// static unsigned long counter = 0;
+	// counter++;
+	// if (counter <= 5 || counter % 100 == 0) {
+	// 	unsigned long jiffies1_from_start = jiffies1 - jiffies1_start;
+	// 	unsigned long jiffies2_from_start = jiffies2 - jiffies2_start;
+	// 	Genode::log("J ", jiffies1_from_start,
+	// 	            " ", jiffies2_from_start,
+	// 	            " ", (unsigned long long) jiffies2_from_start * 1000 / jiffies1_from_start);
+	// 	// Genode::log("J ", jiffies2_from_start, " ", jiffies2);
+	// }
+	return jiffies2;
 }
 
 
@@ -279,10 +412,13 @@ extern "C" void module_dwc_otg_driver_init();
 extern "C" int  module_usbnet_init();
 extern "C" int  module_smsc95xx_driver_init();
 
+unsigned long reference_jiffies;
+
 void platform_hcd_init(Env &env, Services *services)
 {
 	/* enable timer */
-	Platform_timer::instance(env);
+	Platform_timer::instance(env, reference_jiffies);
+	Platform_timer_bcm::instance(env, jiffies);
 
 	/* use costum jiffies update function and the Sp804 timer */
 	Lx::register_jiffies_func(jiffies_update_func);
