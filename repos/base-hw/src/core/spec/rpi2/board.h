@@ -21,6 +21,8 @@
 namespace Board {
 	using namespace Hw::Rpi2_board;
 
+	using Pic = Hw::Bcm2837_pic;
+
 	enum { TIMER_IRQ = 1 };
 }
 

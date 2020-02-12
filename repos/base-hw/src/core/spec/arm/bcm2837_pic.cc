@@ -15,12 +15,13 @@
 #include <cpu.h>
 #include <platform.h>
 
+using namespace Board; // FIXME: hack for TIMER_IRQ
 
-Board::Pic::Pic()
+Hw::Bcm2837_pic::Bcm2837_pic()
 : Genode::Mmio(Genode::Platform::mmio_to_virt(Board::LOCAL_IRQ_CONTROLLER_BASE)) { }
 
 
-bool Board::Pic::take_request(unsigned & irq)
+bool Hw::Bcm2837_pic::take_request(unsigned & irq)
 {
 	unsigned cpu = Genode::Cpu::executing_id();
 	Core_irq_source<0>::access_t src = 0;
@@ -51,7 +52,7 @@ bool Board::Pic::take_request(unsigned & irq)
 }
 
 
-void Board::Pic::_timer_irq(unsigned cpu, bool enable)
+void Hw::Bcm2837_pic::_timer_irq(unsigned cpu, bool enable)
 {
 	unsigned v = enable ? 1 : 0;
 	switch (cpu) {
@@ -72,7 +73,7 @@ void Board::Pic::_timer_irq(unsigned cpu, bool enable)
 }
 
 
-void Board::Pic::_ipi(unsigned cpu, bool enable)
+void Hw::Bcm2837_pic::_ipi(unsigned cpu, bool enable)
 {
 	unsigned v = enable ? 1 : 0;
 	switch (cpu) {
@@ -93,7 +94,7 @@ void Board::Pic::_ipi(unsigned cpu, bool enable)
 }
 
 
-void Board::Pic::unmask(unsigned const i, unsigned cpu)
+void Hw::Bcm2837_pic::unmask(unsigned const i, unsigned cpu)
 {
 	switch (i) {
 		case TIMER_IRQ: _timer_irq(cpu, true); return;
@@ -104,7 +105,7 @@ void Board::Pic::unmask(unsigned const i, unsigned cpu)
 }
 
 
-void Board::Pic::mask(unsigned const i)
+void Hw::Bcm2837_pic::mask(unsigned const i)
 {
 	unsigned cpu = Genode::Cpu::executing_id();
 	switch (i) {
@@ -116,10 +117,10 @@ void Board::Pic::mask(unsigned const i)
 }
 
 
-void Board::Pic::irq_mode(unsigned, unsigned, unsigned) { }
+void Hw::Bcm2837_pic::irq_mode(unsigned, unsigned, unsigned) { }
 
 
-void Board::Pic::send_ipi(unsigned cpu_target)
+void Hw::Bcm2837_pic::send_ipi(unsigned cpu_target)
 {
 	switch (cpu_target) {
 	case 0: write<Core_mailbox_set<0>>(1); return;

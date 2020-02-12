@@ -16,9 +16,9 @@
 
 #include <util/mmio.h>
 
-namespace Board { class Pic; }
+namespace Hw { class Bcm2837_pic; }
 
-class Board::Pic : Genode::Mmio
+class Hw::Bcm2837_pic : Genode::Mmio
 {
 	public:
 
@@ -54,7 +54,7 @@ class Board::Pic : Genode::Mmio
 
 	public:
 
-		Pic();
+		Bcm2837_pic();
 
 		bool take_request(unsigned &irq);
 		void finish_request() { }
