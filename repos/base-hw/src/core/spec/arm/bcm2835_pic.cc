@@ -17,8 +17,8 @@
 
 using namespace Genode;
 
-bool Board::Pic::Usb_dwc_otg::_need_trigger_sof(uint32_t host_frame,
-                                                uint32_t scheduled_frame)
+bool Hw::Bcm2835_pic::Usb_dwc_otg::_need_trigger_sof(uint32_t host_frame,
+                                                     uint32_t scheduled_frame)
 {
 	uint32_t const max_frame = 0x3fff;
 
@@ -36,7 +36,7 @@ bool Board::Pic::Usb_dwc_otg::_need_trigger_sof(uint32_t host_frame,
 }
 
 
-Board::Pic::Usb_dwc_otg::Usb_dwc_otg()
+Hw::Bcm2835_pic::Usb_dwc_otg::Usb_dwc_otg()
 : Mmio(Platform::mmio_to_virt(Board::USB_DWC_OTG_BASE))
 {
 	write<Guid::Num>(0);
@@ -45,7 +45,7 @@ Board::Pic::Usb_dwc_otg::Usb_dwc_otg()
 }
 
 
-bool Board::Pic::Usb_dwc_otg::handle_sof()
+bool Hw::Bcm2835_pic::Usb_dwc_otg::handle_sof()
 {
 	if (!_is_sof())
 		return false;
@@ -70,11 +70,11 @@ bool Board::Pic::Usb_dwc_otg::handle_sof()
 }
 
 
-Board::Pic::Pic()
+Hw::Bcm2835_pic::Bcm2835_pic()
 : Mmio(Platform::mmio_to_virt(Board::IRQ_CONTROLLER_BASE)) { mask(); }
 
 
-bool Board::Pic::take_request(unsigned &irq)
+bool Hw::Bcm2835_pic::take_request(unsigned &irq)
 {
 	/* read basic IRQ status mask */
 	uint32_t const p = read<Irq_pending_basic>();
@@ -108,7 +108,7 @@ bool Board::Pic::take_request(unsigned &irq)
 }
 
 
-void Board::Pic::mask()
+void Hw::Bcm2835_pic::mask()
 {
 	write<Irq_disable_basic>(~0);
 	write<Irq_disable_gpu_1>(~0);
@@ -116,7 +116,7 @@ void Board::Pic::mask()
 }
 
 
-void Board::Pic::unmask(unsigned const i, unsigned)
+void Hw::Bcm2835_pic::unmask(unsigned const i, unsigned)
 {
 	if (i < 8)
 		write<Irq_enable_basic>(1 << i);
@@ -127,7 +127,7 @@ void Board::Pic::unmask(unsigned const i, unsigned)
 }
 
 
-void Board::Pic::mask(unsigned const i)
+void Hw::Bcm2835_pic::mask(unsigned const i)
 {
 	if (i < 8)
 		write<Irq_disable_basic>(1 << i);
@@ -138,4 +138,4 @@ void Board::Pic::mask(unsigned const i)
 }
 
 
-void Board::Pic::irq_mode(unsigned, unsigned, unsigned) { }
+void Hw::Bcm2835_pic::irq_mode(unsigned, unsigned, unsigned) { }

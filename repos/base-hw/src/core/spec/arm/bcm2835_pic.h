@@ -17,10 +17,10 @@
 /* Genode includes */
 #include <util/mmio.h>
 
-namespace Board { class Pic; }
+namespace Hw { class Bcm2835_pic; }
 
 
-class Board::Pic : Genode::Mmio
+class Hw::Bcm2835_pic : Genode::Mmio
 {
 	public:
 
@@ -108,7 +108,7 @@ class Board::Pic : Genode::Mmio
 
 	public:
 
-		Pic();
+		Bcm2835_pic();
 
 		bool take_request(unsigned &irq);
 		void finish_request() { }
