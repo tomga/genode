@@ -45,26 +45,26 @@ set cc_march ""
 set tool_chain_timeout  600
 
 if {[have_spec arm]} {
-	set binutils          "binutils_arm"
-	set gcc               "gcc_arm"
-	set tool_prefix       "genode-arm-"
-	set noux_boot_timeout 350
+	set binutils     "binutils_arm"
+	set gcc          "gcc_arm"
+	set tool_prefix  "genode-arm-"
+	set boot_timeout 350
 }
 
 if {[have_spec arm_64]} {
-	set binutils          "binutils_arm_64"
-	set gcc               "gcc_arm_64"
-	set tool_prefix       "genode-aarch64-" 
-	set noux_boot_timeout 350
-	set platform          "arm_v8a"
+	set binutils     "binutils_arm_64"
+	set gcc          "gcc_arm_64"
+	set tool_prefix  "genode-aarch64-" 
+	set boot_timeout 350
+	set platform     "arm_v8a"
 }
 
 if {[have_spec x86]} {
-	set binutils          "binutils_x86"
-	set gcc               "gcc_x86"
-	set tool_prefix       "genode-x86-"
-	set noux_boot_timeout 250
-	set platform          "x86_64"
+	set binutils     "binutils_x86"
+	set gcc          "gcc_x86"
+	set tool_prefix  "genode-x86-"
+	set boot_timeout 250
+	set platform     "x86_64"
 }
 
 #
@@ -233,7 +233,7 @@ build_boot_image $boot_modules
 append qemu_args " -nographic -m 768 "
 
 # wait until Noux started
-run_genode_until {.*\[init -> vfs\] creating build directory\.\.\..*\n} $noux_boot_timeout
+run_genode_until {.*\[init -> vfs\] creating build directory\.\.\..*\n} $boot_timeout
 set run_id [output_spawn_id]
 
 puts "--- start of time measurement ---"
