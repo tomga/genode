@@ -31,7 +31,6 @@ import_from_depot [depot_user]/src/[base_src] \
                   [depot_user]/src/libc \
                   [depot_user]/src/libcrypto \
                   [depot_user]/src/libssh \
-                  [depot_user]/src/noux \
                   [depot_user]/src/platform_drv \
                   [depot_user]/src/posix \
                   [depot_user]/src/ram_fs \
@@ -179,34 +178,6 @@ set config {
 			<service name="ROM" label="config"> <child name="report_rom"/> </service>
 			<service name="ROM" label_last="coreutils-minimal.tar"> <parent label="coreutils-minimal.tar"/> </service>
 			<service name="ROM" label_last="vim-minimal.tar"> <parent label="vim-minimal.tar"/> </service>
-			<service name="Terminal"> <child name="ssh_terminal"/> </service>
-			<service name="Timer"> <child name="timer"/> </service>
-			<service name="CPU"> <parent/> </service>
-			<service name="LOG"> <parent/> </service>
-			<service name="PD"> <parent/> </service>
-			<service name="RM"> <parent/> </service>
-			<service name="ROM"> <parent/> </service>
-		</route>
-	</start>
-
-	<start name="always-running-noux" caps="500">
-		<binary name="noux"/>
-		<resource name="RAM" quantum="64M"/>
-		<config>
-			<fstab>
-				<tar name="bash.tar" />
-				<tar name="coreutils-minimal.tar" />
-				<tar name="vim-minimal.tar" />
-			</fstab>
-			<start name="/bin/bash">
-				<env name="TERM" value="screen"/>
-				<env name="HOME" value="/"/>
-				<env name="IGNOREEOF" value="3"/>
-			</start>
-		</config>
-		<route>
-			<service name="File_system"> <child name="ram_fs"/> </service>
-			<service name="ROM" label="config"> <child name="report_rom"/> </service>
 			<service name="Terminal"> <child name="ssh_terminal"/> </service>
 			<service name="Timer"> <child name="timer"/> </service>
 			<service name="CPU"> <parent/> </service>
