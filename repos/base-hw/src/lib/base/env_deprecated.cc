@@ -61,13 +61,20 @@ void Genode::upgrade_capability_slab()
 		return;
 	}
 
-	retry<Genode::Out_of_ram>(
+	retry<Genode::Out_of_caps>(
 		[&] () {
-			Genode::Hw_native_pd_client pd(native_pd_cap);
-			pd.upgrade_cap_slab();
+			retry<Genode::Out_of_ram>(
+				[&] () {
+					Genode::Hw_native_pd_client pd(native_pd_cap);
+					pd.upgrade_cap_slab();
+				},
+				[&] () {
+					internal_env().upgrade(Parent::Env::pd(),
+					                       String<100>("ram_quota=", 8192).string());
+				});
 		},
 		[&] () {
 			internal_env().upgrade(Parent::Env::pd(),
-			                       String<100>("ram_quota=", 8192).string());
+			                       String<100>("cap_quota=", 2).string());
 		});
 }
