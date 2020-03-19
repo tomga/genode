@@ -3,7 +3,7 @@
 	<requires> <timer/> </requires>
 
 	<events>
-		<timeout meaning="failed" sec="30" />
+		<timeout meaning="failed" sec="70" />
 		<log meaning="succeeded">child "test-execve" exited with exit value 0</log>
 	</events>
 
