@@ -128,6 +128,9 @@ install_config {
 		<service name="RM"/>
 		<service name="CPU"/>
 		<service name="PD"/>
+		<service name="IO_PORT"/>
+		<service name="IO_MEM"/>
+		<service name="IRQ"/>
 	</parent-provides>
 
 	<default-route>
@@ -189,7 +192,7 @@ install_config {
 	</start>
 
 	<start name="/bin/bash" caps="2000">
-		<resource name="RAM" quantum="1G" />
+		<resource name="RAM" quantum="300M" />
 		<config ld_verbose="yes">
 			<libc stdin="/dev/null" stdout="/dev/log" stderr="/dev/log"
 			      rtc="/dev/rtc" pipe="/dev/pipe"/>
