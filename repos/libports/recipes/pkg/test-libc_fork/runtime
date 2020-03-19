@@ -24,7 +24,7 @@
 			<service name="CPU"/>
 			<service name="PD"/>
 		</parent-provides>
-		<start name="test-fork" caps="300">
+		<start name="test-fork" caps="500">
 			<resource name="RAM" quantum="1G"/>
 			<config>
 				<arg value="name_of_executeable"/>
