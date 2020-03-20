@@ -40,10 +40,12 @@ class Platform::Session_component : public Genode::Rpc_object<Platform::Session>
 	private:
 
 		Mbox &_mbox;
+		int _rpi_version;
 
 	public:
 
-		Session_component(Mbox &mbox) : _mbox(mbox) { }
+		Session_component(Mbox &mbox, int rpi_version)
+		: _mbox(mbox), _rpi_version(rpi_version) { }
 
 
 		/**********************************
@@ -66,8 +68,18 @@ class Platform::Session_component : public Genode::Rpc_object<Platform::Session>
 			auto const &res = msg.append<Property_command::Allocate_buffer>();
 			_mbox.call<Property_message>();
 
-			info.addr = res.address & ~0xC0000000; // bus to phys memory translation
-			                                       // TODO: make a function for this
+			switch (_rpi_version) {
+			case 2:
+			case 3:
+				info.addr = res.address & ~0xC0000000; // bus to phys memory translation
+				                                       // TODO: make a function for this
+				break;
+			case 1:
+			default:
+				info.addr = res.address & ~0x40000000; // bus to phys memory translation
+				                                       // TODO: make a function for this
+			}
+
 			info.size = res.size;
 
 			log("setup_framebuffer ", (void*) (long) info.addr, ", ", info.size, ", ", info.phys_width, ", ", info.phys_height);
@@ -103,17 +115,18 @@ class Platform::Root : public Genode::Root_component<Platform::Session_component
 	private:
 
 		Mbox _mbox;
+		int _rpi_version;
 
 	protected:
 
 		Session_component *_create_session(const char *) override {
-			return new (md_alloc()) Session_component(_mbox); }
+			return new (md_alloc()) Session_component(_mbox, _rpi_version); }
 
 	public:
 
 		Root(Env& env, Allocator & md_alloc, int rpi_version)
 		: Root_component<Session_component>(env.ep(), md_alloc),
-			_mbox(env, rpi_version)
+			_mbox(env, rpi_version), _rpi_version(rpi_version)
 		{ }
 };
 
@@ -135,7 +148,7 @@ struct Main
 private:
 	static int config_rpi_version(Genode::Xml_node node)
 	{
-		return node.attribute_value("rpi_version", 1UL);
+		return node.attribute_value("rpi_version", 0UL);
 	}
 
 };
