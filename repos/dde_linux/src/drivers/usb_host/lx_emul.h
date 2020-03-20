@@ -1822,6 +1822,10 @@ static inline void trace_xhci_dbg_address(struct va_format *v) {}
 
 void lx_backtrace(void);
 
+typedef dma_addr_t (*phys_to_bus_func)(dma_addr_t);
+void register_phys_to_bus_func(phys_to_bus_func func);
+
+
 #include <lx_emul/extern_c_end.h>
 
 #endif /* _LX_EMUL_H_ */
