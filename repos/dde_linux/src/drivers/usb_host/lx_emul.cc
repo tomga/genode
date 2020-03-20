@@ -486,6 +486,12 @@ void  dma_pool_free(struct dma_pool *d, void *vaddr, dma_addr_t a)
 	Lx::Malloc::dma().free(vaddr);
 }
 
+static phys_to_bus_func registered_phys_to_bus_func = nullptr;
+void register_phys_to_bus_func(phys_to_bus_func func)
+{
+	registered_phys_to_bus_func = func;
+}
+
 
 void *dma_alloc_coherent(struct device *, size_t size, dma_addr_t *dma, gfp_t)
 {
@@ -493,6 +499,10 @@ void *dma_alloc_coherent(struct device *, size_t size, dma_addr_t *dma, gfp_t)
 
 	if (!addr)
 		return 0;
+
+	if (registered_phys_to_bus_func != nullptr) {
+		*dma = registered_phys_to_bus_func(*dma);
+	}
 
 	lx_log(DEBUG_DMA, "DMA pool alloc addr: %p size %zx align: %d, phys: %lx",
 	            addr, size, PAGE_SHIFT, *dma);
@@ -522,7 +532,13 @@ dma_addr_t dma_map_single_attrs(struct device *dev, void *ptr,
 		Genode::error("translation virt->phys ", ptr, "->", Genode::Hex(phys), " failed, return ip ",
 		     __builtin_return_address(0));
 
-	lx_log(DEBUG_DMA, "virt: %p phys: %lx", ptr, phys);
+	lx_log(DEBUG_DMA, "virt0: %p phys: %p", ptr, (void*) phys);
+
+	if (registered_phys_to_bus_func != nullptr) {
+		phys = registered_phys_to_bus_func(phys);
+	}
+
+	lx_log(DEBUG_DMA, "virt1: %p phys: %p", ptr, (void*) phys);
 	return phys;
 }
 
