@@ -35,11 +35,19 @@ namespace Genode { template <unsigned long> class Sp804_base; }
 unsigned dwc_irq(Genode::Env&);
 
 
+static int rpi_version = 0;
+static int config_rpi_version(Genode::Xml_node node)
+{
+	return node.attribute_value("rpi_version", 0UL);
+}
+
+
 class Genode::Bcm2835_base : public Mmio
 {
 protected:
 	enum {
-		SYSTEM_TIMER_MMIO_BASE = 0x20003000,
+		SYSTEM_TIMER_MMIO_BASE_RPI1 = 0x20003000,
+		SYSTEM_TIMER_MMIO_BASE_RPI2 = 0x3f003000,
 		SYSTEM_TIMER_MMIO_SIZE = 0x1000,
 		SYSTEM_TIMER_CLOCK     = 1000000,
 
@@ -105,8 +113,21 @@ public:
 struct Platform_timer_bcm : Attached_io_mem_dataspace,
                             Bcm2835_base
 {
+	unsigned long real_SYSTEM_TIMER_MMIO_BASE()
+	{
+		switch (rpi_version) {
+		case 2:
+		case 3:
+			return SYSTEM_TIMER_MMIO_BASE_RPI2;
+		break;
+		case 1:
+		default:
+			return SYSTEM_TIMER_MMIO_BASE_RPI1;
+		}
+	}
+
 	Platform_timer_bcm(Genode::Env &env, unsigned long& jiffies_to_use) :
-		Attached_io_mem_dataspace(env, SYSTEM_TIMER_MMIO_BASE, SYSTEM_TIMER_MMIO_SIZE),
+		Attached_io_mem_dataspace(env, real_SYSTEM_TIMER_MMIO_BASE(), SYSTEM_TIMER_MMIO_SIZE),
 		Bcm2835_base((Genode::addr_t)local_addr<void>(), jiffies_to_use)
 	{ }
 
@@ -240,15 +261,29 @@ public:
 };
 
 
-enum { TIMER_MMIO_BASE   = 0x2000b400,
+enum { TIMER_MMIO_BASE_RPI1   = 0x2000b400,
+       TIMER_MMIO_BASE_RPI2   = 0x3f00b400,
        TIMER_MMIO_SIZE   = 0x100,
        TIMER_CLOCK       = 992*1000 };
 
 struct Platform_timer : Attached_io_mem_dataspace,
                         Sp804_base<TIMER_CLOCK>
 {
+	unsigned long real_TIMER_MMIO_BASE()
+	{
+		switch (rpi_version) {
+		case 2:
+		case 3:
+			return TIMER_MMIO_BASE_RPI2;
+		break;
+		case 1:
+		default:
+			return TIMER_MMIO_BASE_RPI1;
+		}
+	}
+
 	Platform_timer(Genode::Env &env, unsigned long& jiffies_to_use) :
-		Attached_io_mem_dataspace(env, TIMER_MMIO_BASE, TIMER_MMIO_SIZE),
+		Attached_io_mem_dataspace(env, real_TIMER_MMIO_BASE(), TIMER_MMIO_SIZE),
 		Sp804_base((Genode::addr_t)local_addr<void>(), jiffies_to_use)
 	{ }
 
@@ -295,9 +330,16 @@ static unsigned long jiffies_update_func()
  ************************************************/
 
 enum {
-	DWC_BASE = 0x20980000,
+	DWC_BASE_RPI1 = 0x20980000,
+	DWC_BASE_RPI2 = 0x3f980000,
 	DWC_SIZE = 0x20000,
 };
+
+/*******************
+ ** linux/delay.h **
+ *******************/
+
+unsigned long loops_per_jiffy = 1;
 
 
 /*******************
@@ -309,8 +351,38 @@ extern bool fiq_enable, fiq_fsm_enable;
 
 unsigned long reference_jiffies;
 
+dma_addr_t phys_to_bus_rpi1(dma_addr_t addr)
+{
+	addr |= (dma_addr_t) (0x40000000);
+	return addr;
+}
+dma_addr_t phys_to_bus_rpi2(dma_addr_t addr)
+{
+	addr |= (dma_addr_t) (0xc0000000);
+	return addr;
+}
+
 void platform_hcd_init(Genode::Env &env, Services *services)
 {
+	rpi_version = config_rpi_version(Lx_kit::env().config_rom().xml());
+	Genode::log("platform_hcd_init: rpi_version=", rpi_version);
+
+	unsigned long real_DWC_BASE = 0;
+	phys_to_bus_func real_phys_to_bus = nullptr;
+	switch (rpi_version) {
+	case 2:
+	case 3:
+		real_DWC_BASE = DWC_BASE_RPI2;
+		real_phys_to_bus = phys_to_bus_rpi2;
+		break;
+	case 1:
+	default:
+		real_DWC_BASE = DWC_BASE_RPI1;
+		real_phys_to_bus = phys_to_bus_rpi1;
+	}
+
+	register_phys_to_bus_func(real_phys_to_bus);
+
 	/* enable timer */
 	Platform_timer::instance(env, reference_jiffies);
 	Platform_timer_bcm::instance(env, jiffies);
@@ -321,7 +393,7 @@ void platform_hcd_init(Genode::Env &env, Services *services)
 	unsigned irq = dwc_irq(env);
 	static resource _dwc_otg_resource[] =
 	{
-		{ DWC_BASE, DWC_BASE + DWC_SIZE - 1, "dwc_otg", IORESOURCE_MEM },
+		{ real_DWC_BASE, real_DWC_BASE + DWC_SIZE - 1, "dwc_otg", IORESOURCE_MEM },
 		{ irq, irq, "dwc_otg-irq" /* name unused */, IORESOURCE_IRQ }
 	};
 

@@ -17,9 +17,15 @@
 
 using namespace Board; // FIXME: hack for TIMER_IRQ
 
-Hw::Bcm2837_pic::Bcm2837_pic()
-: Genode::Mmio(Genode::Platform::mmio_to_virt(Board::LOCAL_IRQ_CONTROLLER_BASE)) { }
+// static void* PHYS_IRQ_CONTROLLER_BASE = 0;
+// static void* VIRT_IRQ_CONTROLLER_BASE = 0;
+// static bool already_logged = false;
 
+Hw::Bcm2837_pic::Bcm2837_pic()
+	: Genode::Mmio(Genode::Platform::mmio_to_virt(Board::LOCAL_IRQ_CONTROLLER_BASE)),
+	_bcm2835_pic(true, Board::IRQ_CONTROLLER_BASE)
+{
+ }
 
 bool Hw::Bcm2837_pic::take_request(unsigned & irq)
 {
@@ -46,6 +52,22 @@ bool Hw::Bcm2837_pic::take_request(unsigned & irq)
 		case 3: write<Core_mailbox_clear<3>>(1); break;
 		}
 		return true;
+	}
+
+	if (Core_irq_source<0>::Gpu::get(src) && cpu == 0) { // Gpu
+
+	// static int logLimitter = 0;
+	// if (logLimitter <= 10) {
+	// 	Genode::raw("Bcm2837_pic::take_request ", (void*) (src));
+	// 	logLimitter++;
+	// }
+
+
+		// Genode::uint32_t const p1 = read<Irq_pending_gpu_1>(),
+	  //                        p2 = read<Irq_pending_gpu_2>();
+		auto retval = _bcm2835_pic.take_request(irq);
+		//Genode::raw("Bcm2837_pic::take_request ", (void*) (p1), " ", (void*) (p2), " ", irq);
+		return retval;
 	}
 
 	return false;
@@ -100,8 +122,8 @@ void Hw::Bcm2837_pic::unmask(unsigned const i, unsigned cpu)
 		case TIMER_IRQ: _timer_irq(cpu, true); return;
 		case IPI:       _ipi(cpu, true);       return;
 	}
-
-	Genode::raw("irq of peripherals != timer not implemented yet! (irq=", i, ")");
+	if (i >= 8 && cpu == 0) _bcm2835_pic.unmask(i, cpu);
+	//Genode::raw("irq of peripherals != timer not implemented yet! (irq=", i, ")");
 }
 
 
@@ -112,8 +134,8 @@ void Hw::Bcm2837_pic::mask(unsigned const i)
 		case TIMER_IRQ: _timer_irq(cpu, false); return;
 		case IPI:       _ipi(cpu, false);       return;
 	}
-
-	Genode::raw("irq of peripherals != timer not implemented yet! (irq=", i, ")");
+	if (i >= 8 && cpu == 0) _bcm2835_pic.mask(i);
+	//Genode::raw("irq of peripherals != timer not implemented yet! (irq=", i, ")");
 }
 
 

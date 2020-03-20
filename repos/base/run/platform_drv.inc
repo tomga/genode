@@ -40,10 +40,24 @@ proc usb_host_drv_binary { } {
 	if {[have_spec arndale]}   { return arndale_usb_host_drv   }
 	if {[have_spec panda]}     { return panda_usb_host_drv     }
 	if {[have_spec rpi]}       { return rpi_usb_host_drv       }
+	if {[have_spec rpi2]}      { return rpi_usb_host_drv       }
+	if {[have_spec rpi3_32]}   { return rpi_usb_host_drv       }
 	if {[have_spec imx6q_sabrelite]} { return imx6q_sabrelite_usb_host_drv }
 	if {[have_spec imx8q_evk]} { return imx8q_evk_usb_host_drv }
 	if {[have_spec odroid_x2]} { return odroid_x2_usb_host_drv }
 	if {[have_spec x86]}       { return x86_pc_usb_host_drv    }
+	return no_usb_drv_available
+}
+
+
+##
+# Return configuration attributes for the USB driver binary
+#
+proc usb_host_drv_config_attributes { } {
+	if {[have_spec rpi]}       { return rpi_version=\"1\"       }
+	if {[have_spec rpi2]}      { return rpi_version=\"2\"       }
+	if {[have_spec rpi3]}      { return rpi_version=\"3\"       }
+	if {[have_spec rpi3_32]}   { return rpi_version=\"3\"       }
 	return no_usb_drv_available
 }
 
@@ -103,6 +117,8 @@ proc platform_drv_binary {} {
 	if {[have_spec imx53]    } { return imx53_platform_drv     }
 	if {[have_spec odroid_x2]} { return odroid_x2_platform_drv }
 	if {[have_spec rpi]      } { return rpi_platform_drv       }
+	if {[have_spec rpi2]     } { return rpi_platform_drv       }
+	if {[have_spec rpi3_32]  } { return rpi_platform_drv       }
 	if {[have_spec x86]      } { return platform_drv           }
 	return no_platform_drv_available
 }
@@ -177,6 +193,18 @@ proc platform_drv_config_config {} {
 	if {[acpi_drv_name] eq "acpica"} {
 		return {
 		<config acpi_ready="yes">}
+	}
+	if {[have_spec rpi]} {
+		return {
+		<config rpi_version="1">}
+	}
+	if {[have_spec rpi2]} {
+		return {
+		<config rpi_version="2">}
+	}
+	if {[expr [have_spec rpi3] || [have_spec rpi3_32]]} {
+		return {
+		<config rpi_version="3">}
 	}
 
 	return {<config>}

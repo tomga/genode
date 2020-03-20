@@ -13,6 +13,7 @@ INC_DIR += $(REP_DIR)/src/core/spec/rpi2
 SRC_CC += spec/rpi2/pic.cc
 SRC_CC += spec/rpi2/platform_services.cc
 SRC_CC += spec/arm/bcm2837_pic.cc
+SRC_CC += spec/arm/bcm2835_pic.cc
 SRC_CC += spec/arm/generic_timer.cc
 SRC_CC += kernel/vm_thread_off.cc
 

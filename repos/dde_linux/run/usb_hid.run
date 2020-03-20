@@ -57,6 +57,8 @@ if { [get_cmd_switch --autopilot] &&
 
 proc usb_drv_binary { } {
 	if {[have_spec rpi]} { return rpi_usb_drv }
+	if {[have_spec rpi2]} { return rpi_usb_drv }
+	if {[have_spec rpi3_32]} { return rpi_usb_drv }
 	if {[have_spec x86]} { return usb_drv }
 	return no_usb_drv_available
 }
@@ -121,7 +123,7 @@ append config {
 
 	<start name="top">
 		<resource name="RAM" quantum="2M"/>
-		<config period_ms="2000"/>
+		<config period_ms="60000"/>
 	</start>
 
 	<start name="usb_drv" caps="150">

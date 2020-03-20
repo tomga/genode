@@ -7,6 +7,7 @@ SRC_CC += kernel/vm_thread_off.cc
 SRC_CC += platform_services.cc
 SRC_CC += spec/64bit/memory_map.cc
 SRC_CC += spec/arm/bcm2837_pic.cc
+SRC_CC += spec/arm/bcm2835_pic.cc
 SRC_CC += spec/arm/generic_timer.cc
 SRC_CC += spec/arm/kernel/lock.cc
 SRC_CC += spec/arm/platform_support.cc

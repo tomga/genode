@@ -96,6 +96,7 @@ class Hw::Bcm2835_pic : Genode::Mmio
 		};
 
 		Usb_dwc_otg _usb { };
+		bool _ignore_timer;
 
 		/**
 		 * Return true if specified interrupt is pending
@@ -108,7 +109,7 @@ class Hw::Bcm2835_pic : Genode::Mmio
 
 	public:
 
-		Bcm2835_pic();
+		Bcm2835_pic(bool ignore_timer = false, Genode::addr_t irq_ctrl_base = 0);
 
 		bool take_request(unsigned &irq);
 		void finish_request() { }

@@ -129,15 +129,16 @@ append config {
 
 	<start name="top">
 		<resource name="RAM" quantum="2M"/>
-		<config period_ms="2000"/>
+		<config period_ms="60000"/>
 	</start>
 
 	<start name="usb_drv" caps="150"> }
 append config "<binary name=\"[usb_host_drv_binary]\"/>"
 append config {
 		<resource name="RAM" quantum="12M"/>
-		<provides> <service name="Usb"/> </provides>
-		<config bios_handoff="yes">
+		<provides> <service name="Usb"/> </provides> }
+append config	"	<config bios_handoff=\"yes\" [usb_host_drv_config_attributes]>"
+append config {
 			<report devices="yes"/>
 			<policy label_prefix="usb_hid_drv" class="0x3"/>
 		</config>
@@ -178,9 +179,9 @@ append config {
 			</rom>
 			<rom name="scrlock">
 				<inline> <scrlock enabled="no"/> </inline>
-				<sleep milliseconds="1000" />
+				<sleep milliseconds="100" />
 				<inline> <scrlock enabled="yes"/> </inline>
-				<sleep milliseconds="1000" />
+				<sleep milliseconds="100" />
 			</rom>
 		</config>
 		<route>
