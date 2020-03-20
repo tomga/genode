@@ -161,7 +161,7 @@ install_config {
 					<zero/>
 					<log/>
 					<dir name="pipe"> <pipe/> </dir>
-					<inline name="rtc">2100-01-01 00:01</inline>
+					<inline name="rtc">2030-01-01 00:01</inline>
 				</dir>
 				<dir name="home">
 					<ram/>
