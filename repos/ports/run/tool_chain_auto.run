@@ -122,7 +122,8 @@ proc prefixed_nm { } {
 
 
 proc fs_rom_binary { } {
-	if {[have_spec linux]} { return "fs_rom" }
+	if {[have_spec linux]}  { return "fs_rom" }
+	if {[have_spec fiasco]} { return "fs_rom" }
 	return "cached_fs_rom"
 }
 
