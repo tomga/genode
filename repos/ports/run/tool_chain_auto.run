@@ -28,7 +28,8 @@ import_from_depot [depot_user]/src/[base_src] \
                   [depot_user]/src/vfs_pipe \
                   [depot_user]/src/libc \
                   [depot_user]/src/stdcxx \
-                  [depot_user]/src/fs_rom
+                  [depot_user]/src/fs_rom \
+                  [depot_user]/src/cached_fs_rom
 
 
 #
@@ -120,6 +121,12 @@ proc prefixed_nm { } {
 }
 
 
+proc fs_rom_binary { } {
+	if {[have_spec linux]} { return "fs_rom" }
+	return "cached_fs_rom"
+}
+
+
 install_config {
 <config verbose="yes">
 	<parent-provides>
@@ -182,7 +189,7 @@ install_config {
 
 	<start name="vfs_rom">
 		<resource name="RAM" quantum="60M"/>
-		<binary name="fs_rom"/>
+		<binary name="} [fs_rom_binary] {"/>
 		<provides> <service name="ROM"/> </provides>
 		<config/>
 		<route>
