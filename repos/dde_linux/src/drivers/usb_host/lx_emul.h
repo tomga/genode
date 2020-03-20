@@ -480,6 +480,7 @@ void udelay(unsigned long usecs);
 void mdelay(unsigned long usecs);
 void usleep_range(unsigned long min, unsigned long max);
 
+extern unsigned long loops_per_jiffy;  /* needed by 'dwc_otg_attr.c' */
 
 /***********************
  ** linux/workquque.h **
