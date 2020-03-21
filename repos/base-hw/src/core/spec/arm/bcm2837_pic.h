@@ -16,7 +16,7 @@
 
 #include <util/mmio.h>
 
-#include <bcm2835_pic.h>
+#include <spec/arm/bcm2835_pic.h>
 
 namespace Hw { class Bcm2837_pic; }
 
