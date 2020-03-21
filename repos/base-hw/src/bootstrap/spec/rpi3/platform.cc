@@ -25,7 +25,9 @@ Bootstrap::Platform::Board::Board()
             Memory_region { ::Board::LOCAL_IRQ_CONTROLLER_BASE,
                             ::Board::LOCAL_IRQ_CONTROLLER_SIZE },
             Memory_region { ::Board::IRQ_CONTROLLER_BASE,
-                            ::Board::IRQ_CONTROLLER_SIZE }) {}
+                            ::Board::IRQ_CONTROLLER_SIZE },
+            Memory_region { ::Board::USB_DWC_OTG_BASE,
+                            ::Board::USB_DWC_OTG_SIZE }) {}
 
 
 extern unsigned int _crt0_qemu_start_secondary_cpus;
