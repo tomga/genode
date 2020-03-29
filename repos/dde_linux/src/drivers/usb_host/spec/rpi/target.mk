@@ -40,6 +40,8 @@ CC_OPT  += -DINTERRUPT_VC_USB=9
 # for 'dwc_otg_driver.c' for preventing calls to set_irq_type
 CC_OPT  += -DIRQF_TRIGGER_LOW=1
 
+CC_OPT += -DDEBUG
+
 INC_DIR += $(LX_CONTRIB_DIR)/drivers/usb/host/dwc_common_port \
            $(LX_CONTRIB_DIR)/drivers/usb/host/dwc_otg \
            $(REP_DIR)/src/lib/usb_host/spec/arm

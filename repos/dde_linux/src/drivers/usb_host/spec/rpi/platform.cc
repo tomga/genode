@@ -405,6 +405,8 @@ void platform_hcd_init(Genode::Env &env, Services *services)
 	fiq_enable = false;
 	fiq_fsm_enable = false;
 
+	// SET_DEBUG_LEVEL(DBG_HCD_URB);
+
 	module_dwc_otg_driver_init();
 
 	/* setup host-controller platform device */
