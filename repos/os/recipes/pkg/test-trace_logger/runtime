@@ -6,17 +6,17 @@
 		<timeout meaning="failed" sec="20" />
 		<log meaning="succeeded">
 			[init -> trace_logger] --- Report * (3/* subjects) ---*
-			[init -> trace_logger] &lt;subject label="init -> dynamic -> test-trace_logger -> cpu_burner.*" thread="ep" id="*" state="TRACED">
+			[init -> trace_logger] &lt;subject label="init -> test -> cpu_burner.*" thread="ep" id="*" state="TRACED">
 			[init -> trace_logger]    &lt;activity total="*" recent="*">
 			[init -> trace_logger]    &lt;affinity xpos="0" ypos="0">
 			[init -> trace_logger]    &lt;buffer />
 			[init -> trace_logger] &lt;/subject>*
-			[init -> trace_logger] &lt;subject label="init -> dynamic -> test-trace_logger -> cpu_burner.*" thread="ep" id="*" state="TRACED">
+			[init -> trace_logger] &lt;subject label="init -> test -> cpu_burner.*" thread="ep" id="*" state="TRACED">
 			[init -> trace_logger]    &lt;activity total="*" recent="*">
 			[init -> trace_logger]    &lt;affinity xpos="0" ypos="0">
 			[init -> trace_logger]    &lt;buffer />
 			[init -> trace_logger] &lt;/subject>*
-			[init -> trace_logger] &lt;subject label="init -> dynamic -> test-trace_logger -> test-trace_logger" thread="ep" id="*" state="TRACED">
+			[init -> trace_logger] &lt;subject label="init -> test -> test-trace_logger" thread="ep" id="*" state="TRACED">
 			[init -> trace_logger]    &lt;activity total="*" recent="*">
 			[init -> trace_logger]    &lt;affinity xpos="0" ypos="0">
 			[init -> trace_logger]    &lt;buffer>*
@@ -66,10 +66,10 @@
 					default_policy="null"
 					default_buffer="1K">
 
-				<policy label_prefix="init -> dynamic -> test-trace_logger -> cpu_burner"
+				<policy label_prefix="init -> test -> cpu_burner"
 				        thread="ep"/>
 
-				<policy label="init -> dynamic -> test-trace_logger -> test-trace_logger"
+				<policy label="init -> test -> test-trace_logger"
 				        thread="ep"
 				        buffer="4K"
 				        policy="rpc_name"/>
