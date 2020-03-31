@@ -148,12 +148,18 @@ bool Trace::Logger::_evaluate_control()
 
 
 __attribute__((optimize("-fno-delete-null-pointer-checks")))
-void Trace::Logger::log(char const *msg, size_t len)
+bool Trace::Logger::log(char const *msg, size_t len, bool check_policy)
 {
-	if (!this || !_evaluate_control()) return;
+	if (!this || !_evaluate_control()) return false;
 
-	memcpy(buffer->reserve(len), msg, len);
+	char *dst = buffer->reserve(len);
+	if (check_policy)
+		len = policy_module->log_output(dst, msg, len);
+	else
+		memcpy(dst, msg, len);
+
 	buffer->commit(len);
+	return len != 0;
 }
 
 

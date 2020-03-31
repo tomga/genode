@@ -64,8 +64,12 @@ struct Genode::Trace::Logger
 
 		/**
 		 * Log binary data to trace buffer
+		 *
+		 * Returns true if trace is really put to buffer.
+		 * If check_policy then test if log_output should be intercepted.
+		 * If check_policy is false only trace enabled is checked.
 		 */
-		void log(char const *, size_t);
+		bool log(char const *, size_t, bool check_policy);
 
 		/**
 		 * Log event to trace buffer

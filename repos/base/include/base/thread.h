@@ -412,9 +412,9 @@ class Genode::Thread
 		/**
 		 * Log null-terminated string as trace event
 		 */
-		static void trace(char const *cstring)
+		static bool trace(char const *cstring, bool check_policy = false)
 		{
-			_logger()->log(cstring, strlen(cstring));
+			return _logger()->log(cstring, strlen(cstring), check_policy);
 		}
 
 		/**
@@ -422,7 +422,7 @@ class Genode::Thread
 		 */
 		static void trace(char const *data, size_t len)
 		{
-			_logger()->log(data, len);
+			_logger()->log(data, len, false /* do not check policy */);
 		}
 
 		/**
