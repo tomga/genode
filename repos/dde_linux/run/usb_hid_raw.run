@@ -71,6 +71,9 @@ set build_components {
 	server/dynamic_rom
 	server/report_rom
 	app/top
+	app/trace_logger
+	lib/trace/policy/null
+	lib/trace/policy/log_output
 }
 
 lappend_if [have_spec gpio] build_components drivers/gpio
@@ -117,6 +120,31 @@ append config {
 	<start name="timer">
 		<resource name="RAM" quantum="1M"/>
 		<provides><service name="Timer"/></provides>
+	</start>
+
+	<start name="trace_logger" >
+		<resource name="RAM" quantum="80M"/>
+		<config verbose="yes"
+				session_ram="10M"
+				session_parent_levels="1"
+				session_arg_buffer="64K"
+				period_sec="5"
+				activity="yes"
+				affinity="yes"
+				default_policy="null"
+				default_buffer="1K">
+
+			<policy label="init -> usb_drv"
+			        thread="ep"
+			        buffer="4096K"
+			        policy="log_output"/>
+
+			<policy label="init -> usb_hid_drv"
+			        thread="ep"
+			        buffer="4096K"
+			        policy="log_output"/>
+
+		</config>
 	</start>
 
 	<start name="report_rom">
@@ -206,7 +234,7 @@ install_config $config
 
 # generic modules
 set boot_modules {
-	core ld.lib.so init timer usb_hid_drv test-input dynamic_rom report_rom top
+	core ld.lib.so init timer usb_hid_drv test-input dynamic_rom report_rom top trace_logger null log_output
 }
 
 append boot_modules [usb_host_drv_binary]
