@@ -87,7 +87,7 @@ create_boot_directory
 #
 
 append config {
-<config>
+<config prio_levels="2">
 	<parent-provides>
 		<service name="ROM"/>
 		<service name="IRQ"/>
@@ -104,22 +104,16 @@ append config {
 	</default-route>
 	<default caps="100"/>}
 
-append_if [have_spec gpio] config "
-	<start name=\"[gpio_drv]\" caps=\"150\">
-		<resource name=\"RAM\" quantum=\"4M\"/>
-		<provides><service name=\"Gpio\"/></provides>
-		<config/>
-	</start>"
-
 append_platform_drv_config
 
 append config {
-	<start name="timer">
+	<start name="timer" priority="0">
+		<resource name="CPU" quantum="10"/>
 		<resource name="RAM" quantum="1M"/>
 		<provides><service name="Timer"/></provides>
 	</start>
 
-	<start name="report_rom">
+	<start name="report_rom" priority="-1">
 		<resource name="RAM" quantum="1M"/>
 		<provides> <service name="Report"/> <service name="ROM"/> </provides>
 		<config verbose="no">
@@ -127,12 +121,12 @@ append config {
 		</config>
 	</start>
 
-	<start name="top">
+	<start name="top" priority="-2">
 		<resource name="RAM" quantum="2M"/>
 		<config period_ms="60000"/>
 	</start>
 
-	<start name="usb_drv" caps="150"> }
+	<start name="usb_drv" caps="150" priority="0"> }
 append config "<binary name=\"[usb_host_drv_binary]\"/>"
 append config {
 		<resource name="RAM" quantum="12M"/>
@@ -148,7 +142,7 @@ append config {
 		</route>
 	</start>
 
-	<start name="usb_hid_drv" caps="140">
+	<start name="usb_hid_drv" caps="140" priority="0">
 		<resource name="RAM" quantum="11M"/>
 		<provides><service name="Input"/></provides>
 		<config use_report="yes" capslock_led="rom" numlock_led="rom" scrlock_led="rom"/>
@@ -161,7 +155,7 @@ append config {
 		</route>
 	</start>
 
-	<start name="dynamic_rom">
+	<start name="dynamic_rom" priority="-2">
 		<resource name="RAM" quantum="4M"/>
 		<provides> <service name="ROM"/> </provides>
 		<config verbose="no">
@@ -193,7 +187,7 @@ append config {
 		</route>
 	</start>
 
-	<start name="test-input">
+	<start name="test-input" priority="-1">
 		<resource name="RAM" quantum="1M"/>
 	</start>
 </config>}
