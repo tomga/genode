@@ -44,7 +44,7 @@ LIBCXX_GCC = $(shell $(CUSTOM_CXX_LIB) $(CC_MARCH) -print-file-name=libsupc++.a)
 # Dummy target used by the build system
 #
 SRC_S         = supc++.o
-SRC_C         = unwind.o
+SRC_C         = unwind.c
 CXX_SRC       = $(sort $(CXX_SRC_CC))
 CXX_OBJECTS   = $(addsuffix .o,$(basename $(CXX_SRC)))
 LOCAL_SYMBOLS = $(patsubst %,--localize-symbol=%,$(LIBC_SYMBOLS))
