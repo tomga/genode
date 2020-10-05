@@ -43,7 +43,7 @@ LIBCXX_GCC = $(shell $(CUSTOM_CXX_LIB) $(CC_MARCH) -print-file-name=libsupc++.a)
 #
 # Dummy target used by the build system
 #
-SRC_S         = supc++.o
+SRC_O         = supc++.o
 SRC_C         = unwind.c
 CXX_SRC       = $(sort $(CXX_SRC_CC))
 CXX_OBJECTS   = $(addsuffix .o,$(basename $(CXX_SRC)))
@@ -89,7 +89,7 @@ endif
 # Rule to link all libc definitions and libsupc++ libraries
 # and to hide after that the exported libc symbols
 #
-$(SRC_S): $(CXX_OBJECTS)
+$(SRC_O): $(CXX_OBJECTS)
 	$(MSG_MERGE)$@
 	$(VERBOSE)$(LD) $(LD_MARCH) $(addprefix -u ,$(KEEP_SYMBOLS)) -r $(CXX_OBJECTS) $(LIBCXX_GCC) -o $@.tmp
 	$(MSG_CONVERT)$@
