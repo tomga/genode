@@ -1,0 +1,66 @@
+
+create_boot_directory
+
+set build_components {
+	test/libc_integration
+}
+
+set boot_modules {
+	test-libc_integration
+}
+
+import_from_depot [depot_user]/src/[base_src]
+import_from_depot [depot_user]/src/init
+import_from_depot [depot_user]/src/libc
+import_from_depot [depot_user]/src/posix
+import_from_depot [depot_user]/src/stdcxx
+import_from_depot [depot_user]/src/vfs
+import_from_depot [depot_user]/src/vfs_pipe
+
+build $build_components
+
+set config {
+<config>
+	<parent-provides>
+		<service name="ROM"/>
+		<service name="IRQ"/>
+		<service name="IO_MEM"/>
+		<service name="IO_PORT"/>
+		<service name="PD"/>
+		<service name="RM"/>
+		<service name="CPU"/>
+		<service name="LOG"/>
+	</parent-provides>
+	<default-route>
+		<any-service> <parent/> <any-child/> </any-service>
+	</default-route>
+	<default caps="200"/>
+	<start name="timer">
+		<resource name="RAM" quantum="1M"/>
+		<provides> <service name="Timer"/> </provides>
+	</start>
+	<start name="test-libc_integration" caps="400">
+		<resource name="RAM" quantum="256M"/>
+		<config>
+			<libc stdout="/dev/log" stderr="/dev/log" rtc="/dev/rtc" pipe="/dev/pipe"/>
+			<vfs>
+				<dir name="dev">
+					<log/>
+					<inline name="rtc">2019-08-20 15:01</inline>
+					<dir name="pipe">
+						<pipe/>
+					</dir>
+				</dir>
+			</vfs>
+		</config>
+	</start>
+</config>
+}
+
+install_config $config
+
+build_boot_image $boot_modules
+
+append qemu_args " -m 256 -nographic -smp 10 "
+
+run_genode_until {.*--- test finished ---.*} 500000
