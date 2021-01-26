@@ -69,7 +69,8 @@ struct Platform::Main
 		if (root_cap.valid())
 			return;
 
-		if (!_config.valid())
+		/* don't announce service if no policy entry is available */
+		if (!root->config_with_policy())
 			return;
 
 		root_cap = _env.ep().manage(*root);
@@ -105,14 +106,19 @@ struct Platform::Main
 
 	void config_update()
 	{
+		_config.update();
+
 		if (!_config.valid())
 			return;
 
 		if (!root_cap.valid())
 			acpi_update();
 
-		if (root.constructed())
+
+		if (root.constructed()) {
+			root->generate_pci_report();
 			root->config_update();
+		}
 	}
 
 	static bool acpi_platform(Genode::Env & env)

@@ -865,7 +865,8 @@ class Platform::Root : public Genode::Root_component<Session_component>
 		Device_bars_pool                           _devices_bars { };
 		Genode::Constructible<Platform::Pci_buses> _buses { };
 
-		bool _iommu { false };
+		bool _iommu        { false };
+		bool _pci_reported { false };
 
 		struct Timer_delayer : Pci::Config::Delayer, Timer::Connection
 		{
@@ -1115,7 +1116,17 @@ class Platform::Root : public Genode::Root_component<Session_component>
 
 			_construct_buses();
 
-			{
+			generate_pci_report();
+		}
+
+		void generate_pci_report()
+		{
+			if (!_pci_reported && _config.valid() &&
+			    _config.xml().has_sub_node("report") &&
+			    _config.xml().sub_node("report").attribute_value("pci", false)) {
+
+				_pci_reported = true;
+
 				_pci_reporter.construct(_env, "pci", "pci");
 
 				Config_access config_access(*_pci_confspace);
@@ -1168,6 +1179,9 @@ class Platform::Root : public Genode::Root_component<Session_component>
 				});
 			}
 		}
+
+		bool config_with_policy() const {
+			return _config.valid() && _config.xml().has_sub_node("policy"); }
 
 		void config_update()
 		{
