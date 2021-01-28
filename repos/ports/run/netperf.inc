@@ -6,7 +6,7 @@
 #
 
 if {[have_include "power_on/qemu"]} {
-	puts "Run script is not supported on qemu";
+	puts "\nRun script does not support Qemu.\n"
 	exit 0
 }
 
