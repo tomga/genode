@@ -310,6 +310,64 @@ gen_deps_and_build_targets: $(INSTALL_DIR) $(DEBUG_DIR) $(LIB_DEP_FILE)
 again: $(INSTALL_DIR) $(DEBUG_DIR)
 	@$(VERBOSE_MK)$(MAKE) $(VERBOSE_DIR) -f $(LIB_DEP_FILE) all
 
+#
+# Read tools configuration to obtain the cross-compiler prefix passed
+# to the run script.
+#
+-include $(call select_from_repositories,etc/tools.conf)
+
+
+##
+## Compiler-cache support
+##
+
+#
+# To hook the ccache into the build process, the compiler executables are
+# shadowed by symlinks named after the compiler but pointing to the ccache
+# program. When invoked, the ccache program uses argv0 to query the real
+# compiler executable.
+#
+# If the configured tool-chain path is absolute, we assume that it is not
+# already part of the PATH variable. In this (default) case, we supplement the
+# tool-chain path to the CCACHE_PATH as evaluated by the ccache program.
+#
+# Should the tool-chain path not be absolute, the tool-chain executables must
+# already be reachable via the regular PATH variable. Otherwise, the build
+# would not work without ccache either.
+#
+
+ifeq ($(CCACHE),yes)
+
+$(call check_tool,ccache)
+
+ifneq ($(dir $(CUSTOM_CXX)),$(dir $(CUSTOM_CC)))
+$(error ccache enabled but the compilers $(CUSTOM_CXX) and $(CUSTOM_CC)\
+        reside in different directories)
+endif
+
+CCACHE_TOOL_DIR    := $(addsuffix /var/tool/ccache,$(BUILD_BASE_DIR))
+CCACHED_CUSTOM_CC  := $(CCACHE_TOOL_DIR)/$(notdir $(CUSTOM_CC))
+CCACHED_CUSTOM_CXX := $(CCACHE_TOOL_DIR)/$(notdir $(CUSTOM_CXX))
+
+gen_deps_and_build_targets: $(CCACHED_CUSTOM_CC) $(CCACHED_CUSTOM_CXX)
+
+# create ccache symlinks at var/tool/ccache/
+$(CCACHED_CUSTOM_CC) $(CCACHED_CUSTOM_CXX):
+	mkdir -p $(dir $@)
+	ln -sf `which ccache` $@
+
+# supplement tool-chain directory to the search-path variable used by ccache
+ifneq ($(filter /%,$(CUSTOM_CXX)),)
+export CCACHE_PATH := $(dir $(CUSTOM_CXX)):$(PATH)
+endif
+
+# override CUSTOM_CC and CUSTOM_CXX to point to the ccache symlinks
+export CUSTOM_CC  := $(CCACHED_CUSTOM_CC)
+export CUSTOM_CXX := $(CCACHED_CUSTOM_CXX)
+
+endif
+
+
 ##
 ## Rules for running automated test cases
 ##
@@ -318,12 +376,6 @@ RUN_OPT ?=
 
 # helper for run/% rule
 RUN_SCRIPT = $(call select_from_repositories,run/$*.run)
-
-#
-# Read tools configuration to obtain the cross-compiler prefix passed
-# to the run script.
-#
--include $(call select_from_repositories,etc/tools.conf)
 
 run/%: $(call select_from_repositories,run/%.run) $(RUN_ENV)
 	$(VERBOSE)test -f "$(RUN_SCRIPT)" || (echo "Error: No run script for $*"; exit -1)
