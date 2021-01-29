@@ -118,7 +118,7 @@ export SPECS
 
 include $(BASE_DIR)/mk/global.mk
 
-export LIBGCC_INC_DIR = $(shell dirname `$(CUSTOM_CXX_LIB) -print-libgcc-file-name`)/include
+export LIBGCC_INC_DIR := $(shell dirname `$(CUSTOM_CXX_LIB) -print-libgcc-file-name`)/include
 
 #
 # Find out about the target directories to build
@@ -353,8 +353,8 @@ gen_deps_and_build_targets: $(CCACHED_CUSTOM_CC) $(CCACHED_CUSTOM_CXX)
 
 # create ccache symlinks at var/tool/ccache/
 $(CCACHED_CUSTOM_CC) $(CCACHED_CUSTOM_CXX):
-	mkdir -p $(dir $@)
-	ln -sf `which ccache` $@
+	$(VERBOSE_MK)mkdir -p $(dir $@)
+	$(VERBOSE_MK)ln -sf `which ccache` $@
 
 # supplement tool-chain directory to the search-path variable used by ccache
 ifneq ($(filter /%,$(CUSTOM_CXX)),)
