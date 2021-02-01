@@ -56,7 +56,13 @@ struct Driver
 		Label                          label;
 		Driver                        &driver;
 		Genode::Env                   &env;
-		Genode::Allocator_avl         &alloc;
+
+		/*
+		 * Dedicated allocator per device to notice dangling
+		 * allocations on device destruction.
+		 */
+		Genode::Allocator_avl          alloc;
+
 		Task                           state_task;
 		Task                           urb_task;
 
@@ -101,7 +107,6 @@ struct Driver
 	Genode::Env                    &env;
 	Genode::Entrypoint             &ep    { env.ep() };
 	Genode::Heap                    heap  { env.ram(), env.rm() };
-	Genode::Allocator_avl           alloc { &heap };
 	Event::Connection               event { env };
 	Genode::Constructible<Task>     main_task;
 	Genode::Constructible<Genode::Attached_rom_dataspace> report_rom;
