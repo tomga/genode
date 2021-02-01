@@ -87,7 +87,9 @@ proc dst_ip { } {
 }
 
 append config {
+
 <config>
+
 	<parent-provides>
 		<service name="ROM"/>
 		<service name="IRQ"/>
@@ -98,9 +100,11 @@ append config {
 		<service name="CPU"/>
 		<service name="LOG"/>
 	</parent-provides>
+
 	<default-route>
 		<any-service> <parent/> <any-child/> </any-service>
 	</default-route>
+
 	<default caps="100"/>
 
 	<start name="timer">
@@ -124,25 +128,32 @@ append config {
 			<service name="Nic"/>
 			<service name="Uplink"/>
 		</provides>
-		<config verbose_domain_state="yes">
+		<config dhcp_discover_timeout_sec="1">
 
 			<policy label_prefix="drivers" domain="uplink"/>
-			<policy label_prefix="ping"    domain="ping"/>
+			<policy label_prefix="ping"    domain="downlink"/>
 
 			<domain name="uplink">
-				<nat domain="ping" icmp-ids="100"/>
+
+				<nat domain="downlink" icmp-ids="100" udp-ports="100"/>
+
 			</domain>
 
-			<domain name="ping" interface="10.0.3.1/24">
-				<dhcp-server ip_first="10.0.3.80"
-				             ip_last="10.0.3.100"/>
-				<icmp dst="0.0.0.0/0" domain="uplink"/>
+			<domain name="downlink" interface="10.0.3.1/24">
+
+				<dhcp-server ip_first="10.0.3.100" ip_last="10.0.3.200"/>
+				<icmp dst="} [dst_ip] {/24" domain="uplink"/>
+				<udp dst="} [dst_ip] {/24">
+					<permit port="12345" domain="uplink"/>
+				</udp>
+
 			</domain>
 
 		</config>
-	</start>}
+	</start> }
 
 append_if $second_ping_via_udp config {
+
 	<start name="ping_2">
 		<binary name="ping"/>
 		<resource name="RAM" quantum="8M"/>
@@ -156,9 +167,10 @@ append_if $second_ping_via_udp config {
 			<service name="Nic"> <child name="nic_router"/> </service>
 			<any-service> <parent/> <any-child/> </any-service>
 		</route>
-	</start>}
+	</start> }
 
 append config {
+
 	<start name="ping_1">
 		<binary name="ping"/>
 		<resource name="RAM" quantum="8M"/>
@@ -171,7 +183,8 @@ append config {
 			<any-service> <parent/> <any-child/> </any-service>
 		</route>
 	</start>
-</config>}
+
+</config> }
 
 install_config $config
 build_boot_image { ping }
