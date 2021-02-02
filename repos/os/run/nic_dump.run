@@ -95,8 +95,8 @@ append config {
 		</config>
 	</start>
 
-	<start name="nic_dump">
-		<resource name="RAM" quantum="6M"/>
+	<start name="nic_dump" caps="200">
+		<resource name="RAM" quantum="10M"/>
 		<provides><service name="Nic"/></provides>
 		<config uplink="uplink"
 		        downlink="downlink"
