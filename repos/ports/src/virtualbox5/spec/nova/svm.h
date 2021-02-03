@@ -86,7 +86,7 @@ static inline bool svm_load_state(Nova::Utcb * utcb, VM * pVM, PVMCPU pVCpu)
 	PCPUMCTX pCtx  = CPUMQueryGuestCtxPtr(pVCpu);
 
 	utcb->mtd  |= Nova::Mtd::EFER;
-	utcb->efer |= MSR_K6_EFER_SVME;
+	utcb->write_efer(utcb->read_efer() | MSR_K6_EFER_SVME);
 
 	utcb->mtd |= Nova::Mtd::ESDS;
 	GENODE_WRITE_SELREG(es);
