@@ -95,7 +95,7 @@ append_qemu_nic_args
 
 set done_string ".*child \"ping\" exited with exit value 0.*\n"
 
-run_genode_until $done_string 10
+run_genode_until $done_string 30
 
 grep_output { ARP }
 compare_output_to {}
