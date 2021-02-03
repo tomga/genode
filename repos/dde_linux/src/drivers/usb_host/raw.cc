@@ -195,7 +195,7 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 				if ((err == -ENODEV) || (err == -ENOENT) ||
 				    (err == -ESHUTDOWN))
 					p.error = Packet_descriptor::NO_DEVICE_ERROR;
-				else if (err == -EPROTO)
+				else if ((err == -EPROTO) || (err == -EILSEQ))
 					p.error = Packet_descriptor::PROTOCOL_ERROR;
 				else if (err == -EPIPE)
 					p.error = Packet_descriptor::STALL_ERROR;
@@ -237,7 +237,7 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 				if ((err == -ENODEV) || (err == -ENOENT) ||
 				    (err == -ESHUTDOWN))
 					p.error = Packet_descriptor::NO_DEVICE_ERROR;
-				else if (err == -EPROTO)
+				else if ((err == -EPROTO) || (err == -EILSEQ))
 					p.error = Packet_descriptor::PROTOCOL_ERROR;
 				else if (err == -EPIPE)
 					p.error = Packet_descriptor::STALL_ERROR;
@@ -289,7 +289,7 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 					               urb->actual_length);
 			} else if (urb->status == -ESHUTDOWN) {
 				p.error = Packet_descriptor::NO_DEVICE_ERROR;
-			} else if (urb->status == -EPROTO) {
+			} else if ((urb->status == -EPROTO) || (urb->status == -EILSEQ)) {
 				p.error = Packet_descriptor::PROTOCOL_ERROR;
 			} else if (urb->status == -EPIPE) {
 				p.error = Packet_descriptor::STALL_ERROR;
