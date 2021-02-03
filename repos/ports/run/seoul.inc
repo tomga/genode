@@ -368,10 +368,7 @@ append_if $use_nic_session config {
 
 			<domain name="downlink" interface="10.0.3.1/24">
 
-				<dhcp-server ip_first="10.0.3.55" ip_last="10.0.3.55">
-					<dns-server ip="8.8.8.8"/>
-					<dns-server ip="1.1.1.1"/>
-				</dhcp-server>
+				<dhcp-server ip_first="10.0.3.55" ip_last="10.0.3.55" dns_server_from="uplink"/>
 
 				<tcp dst="0.0.0.0/0"><permit-any domain="uplink" /></tcp>
 				<udp dst="0.0.0.0/0"><permit-any domain="uplink" /></udp>
