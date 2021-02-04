@@ -349,6 +349,7 @@ append_if $use_nic_session config {
 		</provides>
 		<config verbose_domain_state="yes">
 
+			<policy label_prefix="seoul"      domain="downlink"/>
 			<policy label_prefix="nic_drv"    domain="uplink"/> }
 
 append_if [expr $use_nic_session && $use_nic_bridge] config {
@@ -357,7 +358,7 @@ append_if [expr $use_nic_session && $use_nic_bridge] config {
 
 append_if $use_nic_session config {
 
-			<domain name="uplink" interface="10.0.2.55/24" gateway="10.0.2.1">
+			<domain name="uplink">
 
 				<nat domain="downlink"
 				     tcp-ports="16384"
@@ -368,7 +369,7 @@ append_if $use_nic_session config {
 
 			<domain name="downlink" interface="10.0.3.1/24">
 
-				<dhcp-server ip_first="10.0.3.55" ip_last="10.0.3.55" dns_server_from="uplink"/>
+				<dhcp-server ip_first="10.0.3.55" ip_last="10.0.3.155" dns_server_from="uplink"/>
 
 				<tcp dst="0.0.0.0/0"><permit-any domain="uplink" /></tcp>
 				<udp dst="0.0.0.0/0"><permit-any domain="uplink" /></udp>
