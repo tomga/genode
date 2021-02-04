@@ -74,7 +74,6 @@ lappend_if $use_vfs_block       build_components server/vfs_block
 lappend_if $use_drv_ahci        build_components drivers/ahci
 lappend_if $use_nic_session     build_components drivers/nic
 lappend_if $use_nic_session     build_components server/nic_router
-lappend_if $use_nic_bridge      build_components server/nic_bridge
 lappend_if $use_framebuffer     build_components drivers/framebuffer
 lappend_if $use_fancy_stuff     build_components app/status_bar
 lappend_if $use_fancy_stuff     build_components app/launchpad
@@ -350,13 +349,8 @@ append_if $use_nic_session config {
 		<config verbose_domain_state="yes">
 
 			<policy label_prefix="seoul"      domain="downlink"/>
-			<policy label_prefix="nic_drv"    domain="uplink"/> }
-
-append_if [expr $use_nic_session && $use_nic_bridge] config {
-
-			<policy label_prefix="nic_bridge" domain="downlink"/> }
-
-append_if $use_nic_session config {
+			<policy label_prefix="launchpad"  domain="downlink"/>
+			<policy label_prefix="nic_drv"    domain="uplink"/>
 
 			<domain name="uplink">
 
@@ -378,18 +372,6 @@ append_if $use_nic_session config {
 			</domain>
 
 		</config>
-	</start>
-}
-
-append_if [expr $use_nic_session && $use_nic_bridge] config {
-	<start name="nic_bridge" priority="-3">
-		<resource name="RAM" quantum="6M"/>
-		<provides><service name="Nic"/></provides>
-		<config> <default-policy/> </config>
-		<route>
-			<service name="Nic"><child name="nic_router"/></service>
-			<any-service><parent/></any-service>
-		</route>
 	</start>
 }
 
@@ -421,9 +403,7 @@ append config {
 			<service name="Timer"><child name="timer"/></service>
 			<service name="ROM" label="config">
 				<parent label="vm_seoul.cfg"/> </service>}
-append_if [expr $use_nic_session && $use_nic_bridge] config {
-			<service name="Nic"> <child name="nic_bridge"/> </service>}
-append_if [expr $use_nic_session && !$use_nic_bridge] config {
+append_if [expr $use_nic_session] config {
 			<service name="Nic"> <child name="nic_router"/> </service>}
 append_if $use_genode_iso config {
 			<service name="ROM" unscoped_label="seoul"> <parent/> </service>
@@ -514,7 +494,7 @@ append_if $use_fancy_stuff config {
 	<start name="launchpad" priority="-2" caps="1500">
 		<resource name="RAM" quantum="64000M"/>
 		<route>
-			<service name="Nic"> <child name="nic_bridge"/> </service>
+			<service name="Nic"> <child name="nic_router"/> </service>
 			<service name="ROM" label="config">
 				<parent label="launchpad-config"/> </service>
 			<any-service><parent/><any-child/></any-service>
@@ -590,7 +570,6 @@ lappend_if $use_vfs_block     boot_modules vfs.lib.so
 lappend_if $use_drv_ahci      boot_modules ahci_drv
 lappend_if $use_nic_session   boot_modules ipxe_nic_drv
 lappend_if $use_nic_session   boot_modules nic_router
-lappend_if $use_nic_bridge    boot_modules nic_bridge
 lappend_if $use_framebuffer   boot_modules vesa_fb_drv
 
 lappend_if $use_fancy_stuff   boot_modules status_bar
