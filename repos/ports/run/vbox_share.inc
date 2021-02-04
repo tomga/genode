@@ -115,7 +115,7 @@ foreach pkg {bash coreutils} {
 	lappend_if [expr ![file exists bin/$pkg]] build_components noux-pkg/$pkg }
 
 set boot_modules {
-	vfs fs_rom
+	vfs fs_rom nic_router
 	posix.lib.so bash.tar coreutils.tar
 	tcp_terminal vfs_lwip.lib.so vfs_pipe.lib.so vfs_import.lib.so
 	ipxe_nic_drv report_rom event_filter
