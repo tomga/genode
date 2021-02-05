@@ -323,8 +323,6 @@ build_boot_image { netserver }
 append qemu_args     "  -nographic "
 append_qemu_nic_args "hostfwd=tcp::12865-:12865,hostfwd=tcp::49153-:49153"
 
-set ip_match_string ""
-set force_ports ""
 set ip_match_string "nic_router\\\] \\\[uplink\\\] dynamic IP config: interface (\[0-9]{1,3}.\[0-9]{1,3}.\[0-9]{1,3}.\[0-9]{1,3}).*\n"
 set force_ports "-P 12864,12864"
 

@@ -147,7 +147,7 @@ set config_of_app {
 			<policy label_prefix="nic_drv"      domain="uplink"/>
 			<policy label_prefix="tcp_terminal" domain="downlink"/>
 
-			<domain name="uplink" interface="10.0.2.55/24" gateway="10.0.2.1">
+			<domain name="uplink">
 
 				<nat domain="downlink"
 				     tcp-ports="16384"
@@ -402,7 +402,7 @@ exec cp ${genode_dir}/repos/ports/run/$vbox_file bin/.
 
 build_boot_image $boot_modules
 
-set ip_match_string "address=(\[0-9\]+\.\[0-9\]+\.\[0-9\]+\.\[0-9\]+).*\n"
+set ip_match_string "nic_router\\\] \\\[uplink\\\] dynamic IP config: interface (\[0-9]{1,3}.\[0-9]{1,3}.\[0-9]{1,3}.\[0-9]{1,3}).*\n"
 
 #
 # Step 2: Read out TCP/IP address of tcp_terminal running on Genode target
