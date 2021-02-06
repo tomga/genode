@@ -130,6 +130,11 @@ DST_DIRS := *
 endif
 
 #
+# Helper function to check if a needed tool is installed
+#
+check_tool = $(if $(shell which $(1)),,$(error Need to have '$(1)' installed.))
+
+#
 # Tool chain version check
 #
 # Empty DST_DIRS is interpreted as a tool-chain agnostic target, e.g., clean.
@@ -143,7 +148,6 @@ endif
 endif
 
 ifneq ($(STATIC_ANALYZE),)
-check_tool = $(if $(shell which $(1)),,$(error Need to have '$(1)' installed.))
 $(call check_tool,scan-build)
 
 MAKE := scan-build --use-c++=$(CUSTOM_CXX) --use-cc=$(CUSTOM_CC) $(MAKE)
