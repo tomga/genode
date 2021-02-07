@@ -105,12 +105,13 @@ void Driver::Device::state_task_entry(void * arg)
 	Device & dev = *reinterpret_cast<Device*>(arg);
 
 	for (;;) {
-		if (dev.usb.plugged() && !dev.udev)
-			dev.register_device();
+		while (dev.state_task.signal_pending()) {
+			if (dev.usb.plugged() && !dev.udev)
+				dev.register_device();
 
-		if (!dev.usb.plugged() && dev.udev)
-			dev.unregister_device();
-
+			if (!dev.usb.plugged() && dev.udev)
+				dev.unregister_device();
+		}
 		Lx::scheduler().current()->block_and_schedule();
 	}
 }
@@ -202,10 +203,12 @@ void Driver::main_task_entry(void * arg)
 	            " (multitouch=", multi_touch ? "true" : "false", ")");
 
 	for (;;) {
-		if (!use_report)
-			static Device dev(*driver, Label(""));
-		else
-			driver->scan_report();
+		while (driver->main_task->signal_pending()) {
+			if (!use_report)
+				static Device dev(*driver, Label(""));
+			else
+				driver->scan_report();
+		}
 		Lx::scheduler().current()->block_and_schedule();
 	}
 }
