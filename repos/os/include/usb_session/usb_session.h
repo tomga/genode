@@ -84,11 +84,12 @@ struct Usb::Packet_descriptor : Genode::Packet_descriptor
 
 	enum Error {
 		NO_ERROR,
+		INTERFACE_OR_ENDPOINT_ERROR,
+		MEMORY_ERROR,
 		NO_DEVICE_ERROR,
 		PACKET_INVALID_ERROR,
 		PROTOCOL_ERROR,
 		STALL_ERROR,
-		SUBMIT_ERROR,
 		TIMEOUT_ERROR,
 		UNKNOWN_ERROR
 	};

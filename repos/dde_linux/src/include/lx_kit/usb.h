@@ -111,6 +111,12 @@ class Urb : public Usb::Completion
 					Genode::error(__func__, ": got NO_ERROR code in error path");
 					_urb.status = -EIO;
 					break;
+				case Usb::Packet_descriptor::INTERFACE_OR_ENDPOINT_ERROR:
+					_urb.status = -ENOENT;
+					break;
+				case Usb::Packet_descriptor::MEMORY_ERROR:
+					_urb.status = -ENOMEM;
+					break;
 				case Usb::Packet_descriptor::NO_DEVICE_ERROR:
 					_urb.status = -ESHUTDOWN;
 					break;
@@ -122,9 +128,6 @@ class Urb : public Usb::Completion
 					break;
 				case Usb::Packet_descriptor::STALL_ERROR:
 					_urb.status = -EPIPE;
-					break;
-				case Usb::Packet_descriptor::SUBMIT_ERROR:
-					_urb.status = -EIO;
 					break;
 				case Usb::Packet_descriptor::TIMEOUT_ERROR:
 					_urb.status = -ETIMEDOUT;

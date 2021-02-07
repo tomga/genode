@@ -192,8 +192,9 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 			} else {
 				p.control.actual_size = 0;
 
-				if ((err == -ENODEV) || (err == -ENOENT) ||
-				    (err == -ESHUTDOWN))
+				if (err == -ENOENT)
+					p.error = Packet_descriptor::INTERFACE_OR_ENDPOINT_ERROR;
+				else if ((err == -ENODEV) || (err == -ESHUTDOWN))
 					p.error = Packet_descriptor::NO_DEVICE_ERROR;
 				else if ((err == -EPROTO) || (err == -EILSEQ))
 					p.error = Packet_descriptor::PROTOCOL_ERROR;
@@ -234,8 +235,9 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 			} else {
 				p.control.actual_size = 0;
 
-				if ((err == -ENODEV) || (err == -ENOENT) ||
-				    (err == -ESHUTDOWN))
+				if (err == -ENOENT)
+					p.error = Packet_descriptor::INTERFACE_OR_ENDPOINT_ERROR;
+				else if ((err == -ENODEV) || (err == -ESHUTDOWN))
 					p.error = Packet_descriptor::NO_DEVICE_ERROR;
 				else if ((err == -EPROTO) || (err == -EILSEQ))
 					p.error = Packet_descriptor::PROTOCOL_ERROR;
@@ -285,7 +287,7 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 				p.succeded             = true;
 
 				if (read)
-					Genode::memcpy(_sink->packet_content(p), urb->transfer_buffer, 
+					Genode::memcpy(_sink->packet_content(p), urb->transfer_buffer,
 					               urb->actual_length);
 			} else if (urb->status == -ESHUTDOWN) {
 				p.error = Packet_descriptor::NO_DEVICE_ERROR;
@@ -337,7 +339,7 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 			if (!bulk_urb) {
 				error("Failed to allocate bulk URB");
 				dma_free(buf);
-				p.error = Usb::Packet_descriptor::SUBMIT_ERROR;
+				p.error = Usb::Packet_descriptor::MEMORY_ERROR;
 				return false;
 			}
 
@@ -348,8 +350,14 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 
 			int ret = usb_submit_urb(bulk_urb, GFP_KERNEL);
 			if (ret != 0) {
-				error("Failed to submit URB, error: ", ret);
-				p.error = Usb::Packet_descriptor::SUBMIT_ERROR;
+				if (ret == -ENOENT)
+					p.error = Packet_descriptor::INTERFACE_OR_ENDPOINT_ERROR;
+				else if ((ret == -ENODEV) || (ret == -ESHUTDOWN))
+					p.error = Packet_descriptor::NO_DEVICE_ERROR;
+				else {
+					Genode::error(__func__, ": unhandled error: ", ret);
+					p.error = Packet_descriptor::UNKNOWN_ERROR;
+				}
 
 				free_complete_data(data);
 				usb_free_urb(bulk_urb);
@@ -379,7 +387,7 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 			if (!irq_urb) {
 				error("Failed to allocate interrupt URB");
 				dma_free(buf);
-				p.error = Usb::Packet_descriptor::SUBMIT_ERROR;
+				p.error = Usb::Packet_descriptor::MEMORY_ERROR;
 				return false;
 			}
 
@@ -395,7 +403,7 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 				if (!ep) {
 					error("could not get ep: ", p.transfer.ep);
 					dma_free(buf);
-					p.error = Usb::Packet_descriptor::SUBMIT_ERROR;
+					p.error = Usb::Packet_descriptor::INTERFACE_OR_ENDPOINT_ERROR;
 					return false;
 				}
 
@@ -409,8 +417,14 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 
 			int ret = usb_submit_urb(irq_urb, GFP_KERNEL);
 			if (ret != 0) {
-				error("Failed to submit URB, error: ", ret);
-				p.error = Usb::Packet_descriptor::SUBMIT_ERROR;
+				if (ret == -ENOENT)
+					p.error = Packet_descriptor::INTERFACE_OR_ENDPOINT_ERROR;
+				else if ((ret == -ENODEV) || (ret == -ESHUTDOWN))
+					p.error = Packet_descriptor::NO_DEVICE_ERROR;
+				else {
+					Genode::error(__func__, ": unhandled error: ", ret);
+					p.error = Packet_descriptor::UNKNOWN_ERROR;
+				}
 
 				free_complete_data(data);
 				usb_free_urb(irq_urb);
@@ -443,7 +457,7 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 			if (!ep) {
 				error("could not get ep: ", p.transfer.ep);
 				dma_free(buf);
-				p.error = Usb::Packet_descriptor::SUBMIT_ERROR;
+				p.error = Usb::Packet_descriptor::INTERFACE_OR_ENDPOINT_ERROR;
 				return false;
 			}
 
@@ -451,7 +465,7 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 			if (!urb) {
 				error("Failed to allocate isochronous URB");
 				dma_free(buf);
-				p.error = Usb::Packet_descriptor::SUBMIT_ERROR;
+				p.error = Usb::Packet_descriptor::MEMORY_ERROR;
 				return false;
 			}
 
@@ -479,8 +493,14 @@ class Usb::Worker : public Genode::Weak_object<Usb::Worker>
 			if (ret == 0)
 				return true;
 
-			error("Failed to submit URB, error: ", ret);
-			p.error = Usb::Packet_descriptor::SUBMIT_ERROR;
+			if (ret == -ENOENT)
+				p.error = Packet_descriptor::INTERFACE_OR_ENDPOINT_ERROR;
+			else if ((ret == -ENODEV) || (ret == -ESHUTDOWN))
+				p.error = Packet_descriptor::NO_DEVICE_ERROR;
+			else {
+				Genode::error(__func__, ": unhandled error: ", ret);
+				p.error = Packet_descriptor::UNKNOWN_ERROR;
+			}
 
 			free_complete_data(data);
 			usb_free_urb(urb);
