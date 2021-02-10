@@ -70,7 +70,6 @@ append_if [expr !$use_lxip] packages " [depot_user]/src/vfs_lwip          "
 append_if $use_lxip         packages " [depot_user]/src/vfs_lxip          "
 append_if $use_nic_bridge   packages " [depot_user]/src/nic_bridge        "
 append_if $use_usb_driver   packages " [depot_user]/src/platform_drv      "
-append_if $use_usb_driver   packages " [depot_user]/src/usb_drv           "
 append_if $use_wifi_driver  packages " [depot_user]/src/fs_rom            "
 append_if $use_wifi_driver  packages " [depot_user]/src/vfs_import        "
 append_if $use_wifi_driver  packages " [depot_user]/src/report_rom        "
@@ -82,7 +81,12 @@ append_if $use_wifi_driver  packages " [depot_user]/raw/wifi_firmware     "
 
 import_from_depot $packages
 
-build { app/netperf }
+set build_components { app/netperf }
+
+append_if $use_usb_driver build_components " drivers/usb_host "
+append_if $use_usb_driver build_components " drivers/usb_net  "
+
+build $build_components
 
 #
 # Generate config
@@ -95,7 +99,7 @@ proc platform_drv_policy {} {
 	global use_wifi_driver
 	if { $use_wifi_driver } {
 		return {<policy label_prefix="nic_drv"> <pci class="WIFI"/> </policy>}}
-	return {<policy label_prefix="nic_drv"> <pci class="USB"/> </policy>}
+	return {<policy label_prefix="usb_host_drv"> <pci class="USB"/> </policy>}
 }
 
 set config {
@@ -183,21 +187,54 @@ append  config { </wifi_config>
 	</start>}
 
 } elseif { $use_usb_driver } {
+
 	append_platform_drv_config
 	append config {
-	<start name="nic_drv" caps="150">
-		<binary name="usb_drv"/>
-		<resource name="RAM" quantum="32M"/>
-		<config mode="uplink_client" uhci="no" ehci="no" xhci="yes">
-			<nic mac="02:00:00:00:01:01" />
+
+	<start name="usb_host_drv" caps="120"> }
+
+	append config "<binary name=\"[usb_host_drv_binary]\"/>"
+	append config {
+
+		<resource name="RAM" quantum="12M"/>
+		<provides> <service name="Usb"/> </provides>
+		<config bios_handoff="yes"> }
+
+	append_if [have_board arndale] config {
+
+			<policy label_prefix="nic_drv" vendor_id="0x0b95" product_id="0x772a"/> }
+
+	append_if [have_board rpi] config {
+
+			<policy label_prefix="nic_drv" vendor_id="0x0424" product_id="0xec00"/> }
+
+	append_if [have_spec x86] config {
+
+			<policy label_prefix="nic_drv" vendor_id="0x0b95" product_id="0x1790"/> }
+
+	append config {
+
 		</config>
 		<route>
-			<service name="Uplink"> <child name="nic_router"/> </service>
-			<any-service> <parent/> </any-service>
+			<service name="Report"> <child name="report_rom"/> </service>
+			<any-service> <parent/> <any-child/> </any-service>
+		</route>
+	</start>
+
+	<start name="nic_drv" caps="200">
+		<binary name="usb_net_drv"/>
+		<resource name="RAM" quantum="20M"/>
+		<config mode="uplink_client" mac="02:00:00:00:01:01" />
+		<route>
+			<service name="Uplink"><child name="nic_router"/></service>
+			<any-service> <parent/> <any-child/> </any-service>
 		</route>
 	</start> }
+
 } else {
+
 	append config {
+
 	<start name="nic_drv" caps="1000" managing_system="yes">
 		<resource name="RAM" quantum="32M"/>
 		<binary name="init"/>
@@ -313,7 +350,12 @@ append config {
 
 install_config $config
 
-build_boot_image { netserver }
+set boot_modules { netserver }
+
+append_if $use_usb_driver boot_modules " [usb_host_drv_binary] "
+append_if $use_usb_driver boot_modules " usb_net_drv  "
+
+build_boot_image $boot_modules
 
 #
 # Execute test case
