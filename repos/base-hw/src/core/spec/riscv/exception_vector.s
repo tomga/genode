@@ -22,7 +22,7 @@
 j  _kernel_entry
 
 .p2align 8
-
+.global _kernel_entry
 _kernel_entry:
 
 	# client context
@@ -63,4 +63,11 @@ _kernel_entry:
 	.global idle_thread_main
 	idle_thread_main:
 	wfi
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 	j idle_thread_main
