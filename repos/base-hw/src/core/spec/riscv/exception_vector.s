@@ -69,12 +69,8 @@ _kernel_entry:
 	 * "Place 7 NOPs after WFI to ensure proper pipeline propagation"
 	 * Otherwise wfi will exit without an interrupt.
 	 */
+	.rept 7
+		nop
+	.endr
 
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
 	j idle_thread_main
