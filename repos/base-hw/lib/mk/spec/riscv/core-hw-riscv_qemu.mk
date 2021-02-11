@@ -1,4 +1,4 @@
-REP_INC_DIR += src/core/spec/riscv src/core/spec/riscv_virt
+REP_INC_DIR += src/core/spec/riscv src/core/spec/riscv_qemu
 
 CC_OPT += -fno-delete-null-pointer-checks
 

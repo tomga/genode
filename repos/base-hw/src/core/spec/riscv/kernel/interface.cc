@@ -1,7 +1,15 @@
 /*
  * \brief  Direct kernel interface for core
  * \author Sebastian Sumpf
- * \date   2015-06-02
+ * \date   2021-02-10
+ *
+ * System call bindings for privileged core threads. Core threads cannot use
+ * hardware-system calls ('ecall') because machine mode (OpenSBI) will interpret
+ * them as SBI calls from supvervisor mode (not system calls). Unknown SBI calls
+ * will lead machine mode to either stopping the machine or doing the wrong thing.
+ * In any case machine mode will not forward the 'ecall' to supervisor mode, it
+ * does only so for 'ecall's from user land. Therefore, call the kernel
+ * directly.
  */
 
 /*
@@ -15,6 +23,7 @@
 #include <kernel/interface.h>
 #include <base/log.h>
 #include <cpu/cpu_state.h>
+
 using namespace Kernel;
 
 
@@ -44,6 +53,9 @@ using namespace Kernel;
 extern Genode::addr_t _kernel_entry;
 
 /*
+ * Emulate RISC-V hardware-system call using jump ('jalr') instead of
+ * environment call ('ecall').
+ *
  * - clear SIE in sstatus (supervisor interrupt enable)
  * - set scause to ECALL from supervisor mode
  * - set sepc to "1:"
@@ -58,7 +70,8 @@ extern Genode::addr_t _kernel_entry;
                    "csrw sepc, %2   \n" \
                    "jalr %1         \n" \
                    "1:              \n" \
-                   : "+r" (arg_0_reg) : "r" (&_kernel_entry), "r" (Genode::Cpu_state::ECALL_FROM_SUPERVISOR)
+                   : "+r" (arg_0_reg) : "r" (&_kernel_entry), \
+                     "r" (Genode::Cpu_state::ECALL_FROM_SUPERVISOR)
 #define CALL_2_SWI CALL_1_SWI,  "r" (arg_1_reg)
 #define CALL_3_SWI CALL_2_SWI,  "r" (arg_2_reg)
 #define CALL_4_SWI CALL_3_SWI,  "r" (arg_3_reg)

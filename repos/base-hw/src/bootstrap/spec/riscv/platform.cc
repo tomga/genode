@@ -18,9 +18,10 @@ using namespace Board;
 
 
 Bootstrap::Platform::Board::Board()
-: early_ram_regions(Memory_region { RAM_BASE, RAM_SIZE } ),
-  core_mmio()
-  {}
+:
+	early_ram_regions(Memory_region { RAM_BASE, RAM_SIZE } ),
+	core_mmio()
+{ }
 
 unsigned Bootstrap::Platform::enable_mmu()
 {

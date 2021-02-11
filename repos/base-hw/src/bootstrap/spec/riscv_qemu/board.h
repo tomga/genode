@@ -11,8 +11,8 @@
  * under the terms of the GNU Affero General Public License version 3.
  */
 
-#ifndef _SRC__BOOTSTRAP__SPEC__RISCV_VIRT__BOARD_H_
-#define _SRC__BOOTSTRAP__SPEC__RISCV_VIRT__BOARD_H_
+#ifndef _SRC__BOOTSTRAP__SPEC__RISCV_QEMU__BOARD_H_
+#define _SRC__BOOTSTRAP__SPEC__RISCV_QEMU__BOARD_H_
 
 #include <hw/spec/riscv/virt_board.h>
 
@@ -22,4 +22,4 @@ template <typename E, unsigned B, unsigned S>
 void Sv39::Level_x_translation_table<E, B, S>::_translation_added(addr_t, size_t)
 { }
 
-#endif /* _SRC__BOOTSTRAP__SPEC__RISCV_VIRT__BOARD_H_ */
+#endif /* _SRC__BOOTSTRAP__SPEC__RISCV_QEMU__BOARD_H_ */

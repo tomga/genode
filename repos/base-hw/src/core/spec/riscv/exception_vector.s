@@ -63,6 +63,13 @@ _kernel_entry:
 	.global idle_thread_main
 	idle_thread_main:
 	wfi
+
+	/*
+	 * MIG-V errata:
+	 * "Place 7 NOPs after WFI to ensure proper pipeline propagation"
+	 * Otherwise wfi will exit without an interrupt.
+	 */
+
 	nop
 	nop
 	nop

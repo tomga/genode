@@ -43,7 +43,9 @@ void Thread::exception(Cpu & cpu)
 		break;
 	case Context::INSTRUCTION_PAGE_FAULT:
 
-		/* XXX
+		/*
+		 * Quirk for MIG-V:
+		 *
 		 * On MIG-V 'stval' does not report the correct address for instructions
 		 * that cross a page boundary.
 		 *
@@ -53,6 +55,10 @@ void Thread::exception(Cpu & cpu)
 		 * the beginning of the instruction."
 		 *
 		 * On MIG-V stval always points to the beginning of the instruction.
+		 *
+		 * Save the last instruction-fetch fault in 'last_fetch_fault', in case the
+		 * next fetch fault occurs at the same IP and is at a page border, set
+		 * page-fault address ('stval') to next page.
 		 */
 		if (regs->last_fetch_fault == regs->ip && (regs->ip & 0xfff) == 0xffe)
 			Stval::write(Stval::read() + 4);

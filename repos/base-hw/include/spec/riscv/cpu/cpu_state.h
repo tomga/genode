@@ -76,6 +76,10 @@ struct Genode::Cpu_state
 	addr_t t5            = 0;
 	addr_t t6            = 0;
 
+	/*
+	 * Save last instruction fetch-fault needed for MIG-V stval quirk in
+	 * kernel/riscv/thread.cc
+	 */
 	addr_t last_fetch_fault = 0;
 
 	bool      is_irq() { return cpu_exception & IRQ_FLAG; }
