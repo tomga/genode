@@ -194,8 +194,8 @@ void Allocator_avl_base::_revert_unused_ranges()
 		if (!block)
 			break;
 
-		int const result = remove_range(block->addr(), block->size());
-		if (!result && block == _find_any_unused_block(_addr_tree.first()))
+		int const error = remove_range(block->addr(), block->size());
+		if (error && block == _find_any_unused_block(_addr_tree.first()))
 			/* if the invocation fails, release the block to break endless loop  */
 			_destroy_block(block);
 	} while (true);
