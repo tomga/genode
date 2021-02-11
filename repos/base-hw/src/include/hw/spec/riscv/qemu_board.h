@@ -12,8 +12,8 @@
  * under the terms of the GNU Affero General Public License version 3.
  */
 
-#ifndef _SRC__INCLUDE__HW__SPEC__RISCV__BOARD_H_
-#define _SRC__INCLUDE__HW__SPEC__RISCV__BOARD_H_
+#ifndef _SRC__INCLUDE__HW__SPEC__RISCV__QEMU_BOARD_H_
+#define _SRC__INCLUDE__HW__SPEC__RISCV__QEMU_BOARD_H_
 
 #include <hw/spec/riscv/boot_info.h>
 #include <hw/spec/riscv/page_table.h>
@@ -35,4 +35,4 @@ namespace Hw::Riscv_board {
 	};
 }
 
-#endif /* _SRC__INCLUDE__HW__SPEC__RISCV__BOARD_H_ */
+#endif /* _SRC__INCLUDE__HW__SPEC__RISCV__QEMU_BOARD_H_ */

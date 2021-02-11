@@ -15,7 +15,7 @@
 #define _CORE__SPEC__RISCV_QEMU__BOARD_H_
 
 
-#include <hw/spec/riscv/virt_board.h>
+#include <hw/spec/riscv/qemu_board.h>
 #include <spec/riscv/pic.h>
 
 namespace Board { using namespace Hw::Riscv_board; }

@@ -14,7 +14,7 @@
 #ifndef _SRC__BOOTSTRAP__SPEC__RISCV_QEMU__BOARD_H_
 #define _SRC__BOOTSTRAP__SPEC__RISCV_QEMU__BOARD_H_
 
-#include <hw/spec/riscv/virt_board.h>
+#include <hw/spec/riscv/qemu_board.h>
 
 namespace Board { using namespace Hw::Riscv_board; }
 
