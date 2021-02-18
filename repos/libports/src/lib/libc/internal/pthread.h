@@ -34,42 +34,28 @@
 namespace Libc {
 
 	struct Pthread;
-	struct Pthread_registry;
 	struct Pthread_blockade;
+	struct Pthread_cleanup;
 	struct Pthread_job;
 	struct Pthread_mutex;
 }
 
 
-/*
- * Used by 'pthread_self()' to find out if the current thread is an alien
- * thread.
- */
-class Libc::Pthread_registry
+class Libc::Pthread_cleanup
 {
 	private:
-
-		enum { MAX_NUM_PTHREADS = 128 };
-
-		Pthread *_array[MAX_NUM_PTHREADS] = { 0 };
 
 		/* thread to be destroyed on next 'cleanup()' call */
 		Pthread *_cleanup_thread { nullptr };
 
 	public:
 
-		void insert(Pthread &thread);
-
-		void remove(Pthread &thread);
-
-		bool contains(Pthread &thread);
-
 		/* destroy '_cleanup_thread' and register another one if given */
 		void cleanup(Pthread *new_cleanup_thread = nullptr);
 };
 
 
-Libc::Pthread_registry &pthread_registry();
+Libc::Pthread_cleanup &pthread_cleanup();
 
 
 extern "C" {
@@ -89,36 +75,7 @@ extern "C" {
 }
 
 
-struct Genode::Thread::Tls::Base
-{
-	/**
-	 * Register thread-local-storage object at Genode thread
-	 */
-	static void tls(Thread &thread, Tls::Base &tls)
-	{
-		thread._tls = Tls { &tls };
-	}
-
-	struct Undefined : Exception { };
-
-	/**
-	 * Obtain thread-local-storage object for the calling thread
-	 *
-	 * \throw Undefined
-	 */
-	static Tls::Base &tls()
-	{
-		Thread &myself = *Thread::myself();
-
-		if (!myself._tls.ptr)
-			throw Undefined();
-
-		return *myself._tls.ptr;
-	}
-};
-
-
-struct Libc::Pthread : Noncopyable, Thread::Tls::Base
+struct Libc::Pthread : Noncopyable
 {
 	typedef void *(*start_routine_t) (void *);
 
@@ -132,6 +89,8 @@ struct Libc::Pthread : Noncopyable, Thread::Tls::Base
 			void          *&_stack_addr;
 			size_t         &_stack_size;
 
+			Pthread        *_pthread;
+
 			enum { WEIGHT = Cpu_session::Weight::DEFAULT_WEIGHT };
 
 			/* 'stack_addr_out' and 'stack_size_out' are written when the thread starts */
@@ -139,11 +98,13 @@ struct Libc::Pthread : Noncopyable, Thread::Tls::Base
 			              Cpu_session *cpu,
 			              Affinity::Location location,
 			              start_routine_t start_routine, void *arg,
-			              void *&stack_addr_out, size_t &stack_size_out)
+			              void *&stack_addr_out, size_t &stack_size_out,
+			              Pthread *pthread)
 			:
 				Thread(WEIGHT, name, stack_size, Type::NORMAL, cpu, location),
 				_start_routine(start_routine), _arg(arg),
-				_stack_addr(stack_addr_out), _stack_size(stack_size_out)
+				_stack_addr(stack_addr_out), _stack_size(stack_size_out),
+				_pthread(pthread)
 			{ }
 
 			void entry() override;
@@ -165,13 +126,6 @@ struct Libc::Pthread : Noncopyable, Thread::Tls::Base
 		 * Refers to '_thread_object' or an external 'Thread' object
 		 */
 		Thread &_thread;
-
-		void _associate_thread_with_pthread()
-		{
-			Thread::Tls::Base::tls(_thread, *this);
-			pthread_registry().cleanup();
-			pthread_registry().insert(*this);
-		}
 
 		bool _exiting = false;
 
@@ -212,6 +166,28 @@ struct Libc::Pthread : Noncopyable, Thread::Tls::Base
 
 		List<Cleanup_handler> _cleanup_handlers;
 
+		/* TLS support */
+
+		/*
+		 * Cached value of 'Thread::stack_virtual_size()' for faster
+		 * TLS pointer calculation.
+		 */
+		static size_t _stack_virtual_size;
+
+		/* mask to obtain stack virtual base from address of stack variable */
+		static size_t _stack_virtual_base_mask;
+
+		/*
+		 * Offset of TLS pointer relative to base address of a thread's
+		 * virtual stack area.
+		 */
+		static size_t _tls_pointer_offset;
+
+		/* initialize TLS pointer on given stack */
+		static void _tls_pointer(void *stack_address, Pthread *pthread);
+
+		void const *_tls_data[PTHREAD_KEYS_MAX] { };
+
 	public:
 
 		int thread_local_errno = 0;
@@ -225,31 +201,22 @@ struct Libc::Pthread : Noncopyable, Thread::Tls::Base
 		:
 			_thread(_construct_thread_object(name, stack_size, cpu, location,
 			                                 start_routine, arg,
-			                                 _stack_addr, _stack_size))
+			                                 _stack_addr, _stack_size, this))
 		{
-			_associate_thread_with_pthread();
+			pthread_cleanup().cleanup();
 		}
 
 		/**
 		 * Constructor to create pthread object out of existing thread,
-		 * i.e., the main thread
+		 * i.e., the main thread or a VirtualBox thread
+		 *
+		 * 'stack_address' is an address on the existing thread's stack,
+		 * needed to calculate the location of the TLS pointer.
+		 *
 		 */
-		Pthread(Thread &existing_thread)
-		:
-			_thread(existing_thread)
-		{
-			/* obtain stack attributes of main thread */
-			Thread::Stack_info info = Thread::mystack();
-			_stack_addr = (void *)info.base;
-			_stack_size = info.top - info.base;
+		Pthread(Thread &existing_thread, void *stack_address);
 
-			_associate_thread_with_pthread();
-		}
-
-		~Pthread()
-		{
-			pthread_registry().remove(*this);
-		}
+		static void init_tls_support();
 
 		void start() { _thread.start(); }
 
@@ -276,12 +243,14 @@ struct Libc::Pthread : Noncopyable, Thread::Tls::Base
 
 			_detach_blockade.block();
 
-			pthread_registry().cleanup(this);
+			pthread_cleanup().cleanup(this);
 			sleep_forever();
 		}
 
 		void   *stack_addr() const { return _stack_addr; }
 		size_t  stack_size() const { return _stack_size; }
+
+		static Pthread *myself();
 
 		/*
 		 * Push a cleanup handler to the cancellation cleanup stack.
@@ -311,6 +280,16 @@ struct Libc::Pthread : Noncopyable, Thread::Tls::Base
 			destroy(alloc, cleanup_handler);
 
 			return true;
+		}
+
+		void setspecific(pthread_key_t key, void const *value)
+		{
+			_tls_data[key] = value;
+		}
+
+		void const *getspecific(pthread_key_t key)
+		{
+			return _tls_data[key];
 		}
 };
 
