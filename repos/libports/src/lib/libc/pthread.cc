@@ -68,14 +68,16 @@ namespace { using Fn = Libc::Monitor::Function_result; }
  ** Pthread **
  *************/
 
-size_t Pthread::_stack_virtual_size;
 size_t Pthread::_stack_virtual_base_mask;
 size_t Pthread::_tls_pointer_offset;
 
 
 void Libc::Pthread::Thread_object::entry()
 {
-	/* obtain stack attributes of new thread */
+	/*
+	 * Obtain stack attributes of new thread for
+	 * 'pthread_attr_get_np()'
+	 */
 	Thread::Stack_info info = Thread::mystack();
 	_stack_addr = (void *)info.base;
 	_stack_size = info.top - info.base;
@@ -98,7 +100,14 @@ Libc::Pthread::Pthread(Thread &existing_thread, void *stack_address)
 :
 	_thread(existing_thread)
 {
-	/* obtain stack attributes of main thread */
+	/* 
+	 * Obtain stack attributes for 'pthread_attr_get_np()'
+	 *
+	 * Note: the values might be incorrect for VirtualBox EMT threads,
+	 *       which have this constructor called from a different thread
+	 *       than 'existing_thread'.
+	 *
+	 */
 	Thread::Stack_info info = Thread::mystack();
 	_stack_addr = (void *)info.base;
 	_stack_size = info.top - info.base;
@@ -113,8 +122,7 @@ void Libc::Pthread::init_tls_support()
 {
 	Thread::Stack_info info = Thread::mystack();
 	_tls_pointer_offset = info.libc_tls_pointer_offset;
-	_stack_virtual_size = Thread::stack_virtual_size();
-	_stack_virtual_base_mask = ~(_stack_virtual_size - 1);
+	_stack_virtual_base_mask = ~(Thread::stack_virtual_size() - 1);
 }
 
 

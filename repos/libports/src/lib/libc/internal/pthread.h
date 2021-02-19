@@ -168,12 +168,6 @@ struct Libc::Pthread : Noncopyable
 
 		/* TLS support */
 
-		/*
-		 * Cached value of 'Thread::stack_virtual_size()' for faster
-		 * TLS pointer calculation.
-		 */
-		static size_t _stack_virtual_size;
-
 		/* mask to obtain stack virtual base from address of stack variable */
 		static size_t _stack_virtual_base_mask;
 
@@ -210,8 +204,18 @@ struct Libc::Pthread : Noncopyable
 		 * Constructor to create pthread object out of existing thread,
 		 * i.e., the main thread or a VirtualBox thread
 		 *
-		 * 'stack_address' is an address on the existing thread's stack,
-		 * needed to calculate the location of the TLS pointer.
+		 * The 'stack_address' argument can be any address on the stack
+		 * of 'existing_thread'. It is needed to locate the correct
+		 * TLS pointer to initialize, because
+		 *
+		 * - the main thread uses a secondary stack, so
+		 *   'existing_thread.stack_top()' would be the
+		 *   wrong stack for the main thread
+		 *
+		 * - VirtualBox EMT threads have this constructor called
+		 *   from a different thread than 'existing_thread', so
+		 *   the address of a local stack variable would belong to
+		 *   the wrong stack for those threads
 		 *
 		 */
 		Pthread(Thread &existing_thread, void *stack_address);
