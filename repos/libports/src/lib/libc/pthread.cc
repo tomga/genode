@@ -715,7 +715,8 @@ extern "C" {
 	{
 		pthread_t pthread_myself = static_cast<pthread_t>(Pthread::myself());
 
-		if (pthread_myself)	return pthread_myself;
+		if (pthread_myself)
+			return pthread_myself;
 
 		/*
 		 * We pass here if the main thread or an alien thread calls
