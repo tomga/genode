@@ -9,7 +9,9 @@ IMAGES  += $(notdir $(wildcard $(WIFI_CONTRIB_DIR)/firmware/*.db))
 BIN_DIR := $(BUILD_BASE_DIR)/bin
 FW_DIR  := $(WIFI_CONTRIB_DIR)/firmware
 
-all: $(addprefix $(BIN_DIR)/,$(IMAGES))
+
+iwl_firmware.lib.tag: $(addprefix $(BIN_DIR)/,$(IMAGES))
+
 
 $(BIN_DIR)/%.ucode: $(FW_DIR)/%.ucode
 	$(VERBOSE)cp $^ $@
