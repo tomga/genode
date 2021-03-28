@@ -10,7 +10,7 @@ BIN_DIR := $(BUILD_BASE_DIR)/bin
 FW_DIR  := $(WIFI_CONTRIB_DIR)/firmware
 
 
-iwl_firmware.lib.tag: $(addprefix $(BIN_DIR)/,$(IMAGES))
+CUSTOM_LIB_TARGETS += $(addprefix $(BIN_DIR)/,$(IMAGES))
 
 
 $(BIN_DIR)/%.ucode: $(FW_DIR)/%.ucode
