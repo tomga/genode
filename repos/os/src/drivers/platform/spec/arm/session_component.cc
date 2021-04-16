@@ -20,6 +20,7 @@ using Driver::Session_component;
 
 void Session_component::produce_xml(Xml_generator &xml)
 {
+	if (!_info) { return; }
 	for (Device_list_element * e = _device_list.first(); e; e = e->next()) {
 		e->object()->report(xml); }
 }
@@ -163,11 +164,12 @@ Session_component::Session_component(Driver::Env       & env,
                                      Session_registry  & registry,
                                      Label       const & label,
                                      Resources   const & resources,
-                                     Diag        const & diag)
+                                     Diag        const & diag,
+                                     bool        const   info)
 : Session_object<Platform::Session>(env.env.ep(), resources, label, diag),
   Session_registry::Element(registry, *this),
   Dynamic_rom_session::Xml_producer("devices"),
-  _env(env)
+  _env(env), _info(info)
 {
 	/*
 	 * FIXME: As the ROM session does not propagate Out_of_*

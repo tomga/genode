@@ -14,9 +14,7 @@
 #ifndef _INCLUDE__VIRTIO__MMIO_DEVICE_H_
 #define _INCLUDE__VIRTIO__MMIO_DEVICE_H_
 
-#include <base/attached_dataspace.h>
-#include <os/attached_mmio.h>
-#include <util/mmio.h>
+#include <platform_session/device.h>
 #include <virtio/queue.h>
 
 
@@ -26,7 +24,7 @@ namespace Virtio {
 }
 
 
-class Virtio::Device : Genode::Attached_dataspace, Genode::Mmio
+class Virtio::Device : Platform::Device::Mmio
 {
 	public:
 
@@ -99,11 +97,9 @@ class Virtio::Device : Genode::Attached_dataspace, Genode::Mmio
 
 	public:
 
-		Device(Genode::Env                         &env,
-		       Genode::Io_mem_dataspace_capability  io_mem_ds,
-		       size_t                               offset)
-		: Attached_dataspace(env.rm(), io_mem_ds)
-		, Mmio((addr_t)local_addr<void>() + offset)
+		Device(Platform::Device & device)
+		:
+			Platform::Device::Mmio(device)
 		{
 			if (read<Magic>() != VIRTIO_MMIO_MAGIC) {
 				throw Invalid_device(); }
