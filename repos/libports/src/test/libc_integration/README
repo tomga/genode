@@ -1,5 +1,6 @@
 Libc test for heavy multi threading and vfs usage.
 
+
 To build this example for Linux use the following command:
 
 ``` bash
@@ -19,3 +20,9 @@ g++ -pthread -Wall -Werror -std=c++17 \
 	-o integration_test
 ./integration_test
 ```
+
+Parameters:
+  -wo     number of worker to run              default value: 200000000
+  -pw     number of parallel workers to run    default value: 23
+  -ws     maximal buffer to transfer           default value: 16384
+  -ds     data size to write at once           default value: 1024

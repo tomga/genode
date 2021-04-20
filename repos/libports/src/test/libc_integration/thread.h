@@ -39,8 +39,9 @@ namespace Integration_test
 
 	struct Work_info
 	{
-		size_t num_bytes;
+		size_t  num_bytes;
 		size_t  worker_no;
+		size_t  buffer_size;
 		int     pipe_in_fd;
 		int     pipe_out_fd;
 	};
@@ -93,7 +94,7 @@ class Integration_test::Test_worker
 
 	public:
 
-		Test_worker(size_t num_bytes, size_t worker_no);
+		Test_worker(size_t num_bytes, size_t worker_no, size_t buffer_size);
 
 		~Test_worker()
 		{
@@ -123,11 +124,12 @@ class Integration_test::Thread_list
 {
 	private:
 
-		list<Test_worker>                _threads { };
-		File_descriptor_set              _fd_set  { };
-		random_device                    _rd      { };
-		mt19937                          _gen     { _rd() };
-		uniform_int_distribution<size_t> _distrib { 1, BUFFER_SIZE };
+		size_t                           _buffer_size { };
+		list<Test_worker>                _threads     { };
+		File_descriptor_set              _fd_set      { };
+		random_device                    _rd          { };
+		mt19937                          _gen         { _rd() };
+		uniform_int_distribution<size_t> _distrib     { 1, BUFFER_SIZE };
 
 		Work_iter _find_worker_by_worker_no(size_t worker_no)
 		{
@@ -139,9 +141,10 @@ class Integration_test::Thread_list
 
 	public:
 
-		Thread_list()
-		{
-		}
+		Thread_list(size_t buffer_size)
+		:
+			_buffer_size { buffer_size }
+		{ }
 
 		fd_set fds()           { return _fd_set.fds(); }
 		int     max_fd() const { return _fd_set.max_fd(); }
@@ -171,7 +174,7 @@ class Integration_test::Thread_list
 			static size_t worker_no { 0 };
 			size_t const num_bytes { _distrib(_gen) };
 
-			_threads.emplace_back(num_bytes, worker_no);
+			_threads.emplace_back(num_bytes, worker_no, _buffer_size);
 
 			/* manage fd_set for receiver thread */
 			_fd_set.add_fd(_threads.back().read_fd());

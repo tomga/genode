@@ -67,7 +67,7 @@ void *worker_func(void *ptr)
 		}
 
 		/* write part of response */
-		size_t  cnt   { min(static_cast<size_t>(WRITE_SIZE), work_info.num_bytes-bytes_written) };
+		size_t  cnt   { min(static_cast<size_t>(work_info.buffer_size), work_info.num_bytes-bytes_written) };
 		ssize_t w_res { write(work_info.pipe_out_fd,
 		                      data_out.data()+bytes_written,
 		                      cnt) };
@@ -95,7 +95,7 @@ void *worker_func(void *ptr)
 	/* write remaining output bytes */
 	while (bytes_written < data_out.size()) {
 
-		size_t  cnt   { min(static_cast<size_t>(WRITE_SIZE), work_info.num_bytes-bytes_written) };
+		size_t  cnt   { min(static_cast<size_t>(work_info.buffer_size), work_info.num_bytes-bytes_written) };
 		ssize_t w_res { write(work_info.pipe_out_fd,
 		                      data_out.data()+bytes_written, cnt) };
 
@@ -111,10 +111,11 @@ void *worker_func(void *ptr)
 }
 
 
-Integration_test::Test_worker::Test_worker(size_t num_bytes, size_t worker_no)
+Integration_test::Test_worker::Test_worker(size_t num_bytes, size_t worker_no, size_t buffer_size)
 :
 	_work_info { .num_bytes    = num_bytes,
 	             .worker_no    = worker_no,
+	             .buffer_size  = buffer_size,
 	             .pipe_in_fd   = _pipe_in.read_fd(),
 	             .pipe_out_fd  = _pipe_out.write_fd() }
 {

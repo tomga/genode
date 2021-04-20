@@ -43,6 +43,11 @@ set config {
 		<resource name="RAM" quantum="256M"/>
 		<config>
 			<libc stdout="/dev/log" stderr="/dev/log" rtc="/dev/rtc" pipe="/dev/pipe"/>
+			<arg value="test-libc_integration"/>
+			<arg value="-wo"/> <arg value="10000"/>
+			<arg value="-pw"/> <arg value="23"/>
+			<arg value="-ws"/> <arg value="16384"/>
+			<arg value="-ds"/> <arg value="1024"/>
 			<vfs>
 				<dir name="dev">
 					<log/>
