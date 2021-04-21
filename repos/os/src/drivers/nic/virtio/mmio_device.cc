@@ -32,15 +32,14 @@ struct Virtio_mmio_nic::Main
 {
 	struct Device_not_found : Genode::Exception { };
 
-	Env                                 &env;
-	Heap                                 heap          { env.ram(), env.rm() };
-	Platform::Connection                 platform      { env                 };
-	Platform::Device                     device        { platform, { "nic" } };
-	Platform::Device::Irq                irq           { device              };
-	Virtio::Device                       regs          { device              };
-	Attached_rom_dataspace               config_rom    { env, "config"       };
-	Constructible<Virtio_nic::Root>      root          { };
-	Constructible<Genode::Uplink_client> uplink_client { };
+	Env                           & env;
+	Heap                            heap            { env.ram(), env.rm() };
+	Platform::Connection            platform        { env                 };
+	Platform::Device                platform_device { platform, { "nic" } };
+	Virtio::Device                  device          { platform_device     };
+	Attached_rom_dataspace          config_rom      { env, "config"       };
+	Constructible<Virtio_nic::Root> root            { };
+	Constructible<Uplink_client>    uplink_client   { };
 
 	Main(Env &env)
 	try : env(env)
@@ -53,13 +52,13 @@ struct Virtio_mmio_nic::Main
 		switch (mode) {
 		case Nic_driver_mode::NIC_SERVER:
 
-			root.construct( env, heap, regs, irq, config_rom);
+			root.construct( env, heap, device, config_rom);
 			env.parent().announce(env.ep().manage(*root));
 			break;
 
 		case Nic_driver_mode::UPLINK_CLIENT:
 
-			uplink_client.construct( env, heap, regs, irq, config_rom.xml());
+			uplink_client.construct( env, heap, device, config_rom.xml());
 			break;
 		}
 	}

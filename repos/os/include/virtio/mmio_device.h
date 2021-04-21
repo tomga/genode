@@ -95,11 +95,13 @@ class Virtio::Device : Platform::Device::Mmio
 		Device(Device const &) = delete;
 		Device &operator = (Device const &) = delete;
 
+		Platform::Device::Irq _irq;
+
 	public:
 
 		Device(Platform::Device & device)
 		:
-			Platform::Device::Mmio(device)
+			Platform::Device::Mmio(device), _irq(device, {0})
 		{
 			if (read<Magic>() != VIRTIO_MMIO_MAGIC) {
 				throw Invalid_device(); }
@@ -192,6 +194,11 @@ class Virtio::Device : Platform::Device::Mmio
 			write<InterruptAck>(isr);
 			return isr;
 		}
+
+		void irq_sigh(Signal_context_capability cap) {
+			_irq.sigh(cap); }
+
+		void irq_ack() { _irq.ack(); }
 };
 
 #endif /* _INCLUDE__VIRTIO__MMIO_DEVICE_H_ */

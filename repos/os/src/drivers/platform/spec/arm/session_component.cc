@@ -97,6 +97,16 @@ Session_component::acquire_device(Platform::Session::Device_name const &name)
 }
 
 
+Genode::Capability<Platform::Device_interface>
+Session_component::acquire_single_device()
+{
+	Device_list_element * e = _device_list.first();
+	if (!e) { return Capability<Platform::Device_interface>(); }
+
+	return acquire_device(e->object()->device());
+}
+
+
 void Session_component::release_device(Capability<Platform::Device_interface> device_cap)
 {
 	_env.env.ep().rpc_ep().apply(device_cap, [&] (Device_component * dc) {
