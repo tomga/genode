@@ -135,7 +135,7 @@ int Libc::pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 	using Genode::Affinity;
 
 	unsigned const id { pthread_id() };
-	unsigned const cpu = (id < sizeof(_id_cpu_map) / sizeof(_id_cpu_map[0])) ? _id_cpu_map[id] : 0;
+	unsigned const cpu = _id_cpu_map[id % (sizeof(_id_cpu_map) / sizeof(_id_cpu_map[0]))];
 
 	Genode::String<32> const pthread_name { "pthread.", id };
 	Affinity::Space space { _cpu_session->affinity_space() };
