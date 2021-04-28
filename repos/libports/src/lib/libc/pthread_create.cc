@@ -34,7 +34,8 @@ using namespace Genode;
 
 struct Placement_policy
 {
-	struct Placement : Interface {
+	struct Placement : Interface
+	{
 		unsigned pthread_id;
 		unsigned cpu;
 
@@ -44,26 +45,26 @@ struct Placement_policy
 
 	Registry<Registered<Placement> > _policies { };
 
-	enum Policy { ALL_CPUS, SINGLE_CPU, MANUAL };
+	enum class Policy { ALL, SINGLE, MANUAL };
 
-	Policy _policy { ALL_CPUS };
+	Policy _policy { Policy::ALL };
 
 	void policy(String<32> const &policy_name)
 	{
 		if (policy_name == "single-cpu")
-			_policy = SINGLE_CPU;
+			_policy = Policy::SINGLE;
 		if (policy_name == "manual")
-			_policy = MANUAL;
+			_policy = Policy::MANUAL;
 		if (policy_name == "all-cpus")
-			_policy = ALL_CPUS;
+			_policy = Policy::ALL;
 	}
 
 	unsigned placement(unsigned const pthread_id) const
 	{
 		switch (_policy) {
-		case SINGLE_CPU:
+		case Policy::SINGLE:
 			return 0U;
-		case MANUAL: {
+		case Policy::MANUAL: {
 			unsigned cpu   = 0U;
 			bool     found = false;
 			_policies.for_each([&](auto const &policy) {
@@ -72,10 +73,10 @@ struct Placement_policy
 					found = true;
 				}
 			});
-			/* if no entry is found, ALL_CPUS policy is applied */
+			/* if no entry is found, Policy::ALL is applied */
 			return found ? cpu : pthread_id;
 		}
-		case ALL_CPUS:
+		case Policy::ALL:
 		default:
 			return pthread_id;
 		}
