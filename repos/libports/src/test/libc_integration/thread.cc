@@ -79,6 +79,14 @@ void *worker_func(void *ptr)
 
 		bytes_written += w_res;
 
+		/*
+		 * Get out early when the expected num_bytes got written already.
+		 * The receiver will pthread_join this thread and wait for.
+		 */
+		if (bytes_written >= work_info.num_bytes) {
+			return nullptr;
+		}
+
 		if (bytes_written >= data_out.size()) {
 			break;
 		}
@@ -90,7 +98,7 @@ void *worker_func(void *ptr)
 	}
 
 	/* simulate output creation requiring some time */
-	usleep(1000*random()%300);
+	usleep(1000ull*random()%300);
 
 	/* write remaining output bytes */
 	while (bytes_written < data_out.size()) {
