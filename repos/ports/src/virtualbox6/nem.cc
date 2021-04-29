@@ -472,9 +472,9 @@ void nemHCNativeNotifyPhysPageProtChanged(PVMCC pVM, RTGCPHYS GCPhys, RTHCPHYS H
                                           ::uint8_t *pu2State)
 {
 	Sup::Nem::Protection const prot {
-		.readable   = fPageProt & NEM_PAGE_PROT_READ,
-		.writeable  = fPageProt & NEM_PAGE_PROT_WRITE,
-		.executable = fPageProt & NEM_PAGE_PROT_EXECUTE,
+		.readable   = (bool)(fPageProt & NEM_PAGE_PROT_READ),
+		.writeable  = (bool)(fPageProt & NEM_PAGE_PROT_WRITE),
+		.executable = (bool)(fPageProt & NEM_PAGE_PROT_EXECUTE),
 	};
 
 	/*
