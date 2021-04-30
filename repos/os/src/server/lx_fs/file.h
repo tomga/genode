@@ -159,9 +159,9 @@ class Lx_fs::File : public Node
 			return {
 				.size  = (file_size_t)st.st_size,
 				.type  = File_system::Node_type::CONTINUOUS_FILE,
-				.rwx   = { .readable   = (st.st_mode & S_IRUSR),
-				           .writeable  = (st.st_mode & S_IWUSR),
-				           .executable = (st.st_mode & S_IXUSR) },
+				.rwx   = { .readable   = (bool)(st.st_mode & S_IRUSR),
+				           .writeable  = (bool)(st.st_mode & S_IWUSR),
+				           .executable = (bool)(st.st_mode & S_IXUSR) },
 				.inode = inode(),
 				.modification_time = { st.st_mtime }
 			};
