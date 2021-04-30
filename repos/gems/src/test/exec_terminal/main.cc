@@ -145,7 +145,7 @@ void Exec_terminal::Main::_gen_sub_init_config(Xml_generator &xml, Xml_node cons
 		xml.node("config",[&] () {
 			xml.node("vfs",[&] () {
 				xml.node("tar",[&] () { xml.attribute("name", "bash.tar"); });
-				xml.node("tar",[&] () { xml.attribute("name", "coreutils-minimal.tar"); });
+				xml.node("tar",[&] () { xml.attribute("name", "coreutils.tar"); });
 				xml.node("tar",[&] () { xml.attribute("name", "vim-minimal.tar"); });
 				xml.node("dir",[&] () {
 					xml.attribute("name", "rw");
