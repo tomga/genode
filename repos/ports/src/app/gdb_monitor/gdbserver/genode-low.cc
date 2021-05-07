@@ -508,7 +508,7 @@ extern "C" int vfork()
 
 	Cap_quota const avail_cap_quota = genode_env->pd().avail_caps();
 
-	Genode::size_t const preserved_caps = 100;
+	Genode::size_t const preserved_caps = 200;
 
 	if (avail_cap_quota.value < preserved_caps) {
 		error("not enough available caps for preservation of ", preserved_caps);
