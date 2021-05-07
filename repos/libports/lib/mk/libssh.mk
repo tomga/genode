@@ -83,3 +83,4 @@ vpath %.c $(LIBSSH_PORT_DIR)/src/lib/libssh/src/external
 vpath %.c $(LIBSSH_PORT_DIR)/src/lib/libssh/src/threads
 
 CC_CXX_WARN_STRICT =
+CC_OLEVEL = -O0

@@ -9,3 +9,5 @@ vpath %.cc $(REP_DIR)/src/lib/vfs/jitterentropy
 SHARED_LIB = yes
 
 CC_CXX_WARN_STRICT =
+
+CC_OLEVEL = -O0

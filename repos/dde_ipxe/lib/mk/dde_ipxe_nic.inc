@@ -42,4 +42,6 @@ vpath dde_support.cc $(LIB_DIR)
 
 vpath %.c            $(IPXE_CONTRIB_DIR)
 
+CC_OLEVEL = -O0
+
 # vi: set ft=make :

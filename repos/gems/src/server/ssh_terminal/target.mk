@@ -6,3 +6,4 @@ SRC_CC += util.cc
 LIBS    = base libc libssh
 
 CC_CXX_WARN_STRICT =
+CC_OLEVEL = -O0
