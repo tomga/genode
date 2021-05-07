@@ -45,6 +45,7 @@ struct Main
 	{
 		Genode::log("--- SSH terminal started ---");
 		_env.parent().announce(env.ep().manage(_root));
+		Genode::log("--- SSH terminal announced ---");
 	}
 };
 

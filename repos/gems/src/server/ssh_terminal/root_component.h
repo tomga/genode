@@ -68,6 +68,8 @@ class Terminal::Root_component : public Genode::Root_component<Session_component
 
 		Session_component *_create_session(const char *args)
 		{
+			Genode::log("Terminal _create_session: ", args);
+
 			try {
 				Session_label const label = label_from_args(args);
 				Session_policy policy(label, _config);
