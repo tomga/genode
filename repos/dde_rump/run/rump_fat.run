@@ -78,7 +78,7 @@ append config {
 		</config>
 	</start>
 	<start name="test-libc_vfs">
-		<resource name="RAM" quantum="4M"/>
+		<resource name="RAM" quantum="48M"/>
 		<config>
 			<libc stdout="/dev/log"/>
 			<vfs>
@@ -100,6 +100,8 @@ set boot_modules {
 	core ld.lib.so init timer test-libc_vfs vfs_block
 	rump.lib.so rump_fs.lib.so vfs vfs_rump.lib.so
 	fs.raw libc.lib.so vfs.lib.so vfs_import.lib.so
+
+	libsanitizer_common.lib.so libubsan.lib.so
 }
 
 build_boot_image $boot_modules

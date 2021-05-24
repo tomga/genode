@@ -332,4 +332,15 @@ struct Main
 };
 
 
-void Libc::Component::construct(Libc::Env &env) { static Main main(env); }
+extern void sanitizer_init(Genode::Env &);
+extern void sanitizer_exit();
+
+void Libc::Component::construct(Libc::Env &env) {
+	Genode::log("--- initialize sanitizer ---");
+	sanitizer_init(env);
+	Genode::log("--- sanitizer initialized ---");
+
+	static Main main(env);
+
+	// sanitizer_exit();
+}
