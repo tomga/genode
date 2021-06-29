@@ -12,11 +12,12 @@ define HELP_MESSAGE
 
   usage:
 
-    $(firstword $(MAKEFILE_LIST)) <src-name> SPEC=<spec> USER=<user>
+    $(firstword $(MAKEFILE_LIST)) <src-name> SPEC=<spec> USER=<user> CCACHE=<ccache>
 
     <src-name>   name of the source archive to build
     <spec>       build spec, e.g., x86_32, x86_64
     <user>       identity of the archive creator
+    <ccache>     compiler calls will use the C/C++ compiler cache if this is 1
 
 endef
 
@@ -158,7 +159,7 @@ ifneq ($(MISSING_API_DIRS),)
 	@false
 endif
 
-ifeq ($(CCACHE),yes)
+ifeq ($(CCACHE),1)
 BUILD_CONF_CCACHE := yes
 else
 BUILD_CONF_CCACHE :=
